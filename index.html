@@ -38,6 +38,7 @@
         h1 { color: var(--primary); margin-bottom: 5px; }
         h2 { color: var(--primary); margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
 
+        /* Configuration Banner */
         .config-box {
             background: #EBF8FF;
             border: 1px solid #BEE3F8;
@@ -74,6 +75,7 @@
 
         .status-banner { background: #EDF2F7; padding: 12px; border-radius: 6px; font-weight: bold; margin-bottom: 15px; border-left: 5px solid var(--accent); }
 
+        /* ----- Spreadsheet Grid ----- */
         .grid-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
         table.task-grid {
             width: 100%;
@@ -323,6 +325,8 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
 <script>
     let supabaseClient = null;
     let activeProjectId = null;
+    // Each row object tracks its DB state so we know whether to insert or update on save.
+    // { rowId (client-side unique key), dbId (uuid or null if new), isDirty, isNew }
     let gridRows = [];
     let rowCounter = 0;
     let depRows = [];
@@ -341,6 +345,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         fetchExistingProjects();
     }
 
+    // Pull every project already stored in the database so the user can resume one
     async function fetchExistingProjects() {
         if (!supabaseClient) return;
 
@@ -369,6 +374,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         }
     }
 
+    // Triggered when the user picks a project from the dropdown
     async function selectExistingProject(projectId) {
         if (!projectId) return;
         const { data, error } = await supabaseClient
@@ -390,6 +396,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         await refreshDataContainers();
     }
 
+    // STEP 1: Process and insert Project Data
     async function handleProjectSubmit(event) {
         event.preventDefault();
         if(!supabaseClient) return alert("Verify database connections prior to record setup.");
@@ -435,11 +442,13 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
     // ---------- IMPORT FROM EXCEL / CSV / PASTE ----------
 
     function parseDateValue(val) {
+        // Handles Excel serial dates, JS Date objects from SheetJS, and plain text dates
         if (val === null || val === undefined || val === '') return '';
         if (val instanceof Date) {
             return val.toISOString().split('T')[0];
         }
         if (typeof val === 'number') {
+            // Excel serial date (days since 1899-12-30)
             const d = new Date(Math.round((val - 25569) * 86400 * 1000));
             return isNaN(d) ? '' : d.toISOString().split('T')[0];
         }
@@ -449,25 +458,27 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
     }
 
     function importRowsFromArrays(rows) {
+        // rows: array of arrays, each like [task_id, category/title, weeks, parent_id]
         // Matches the Output Sheet layout: Task ID, Category, Weeks, Parent ID
         const statusEl = document.getElementById('importStatus');
         let imported = 0;
 
-        rows.forEach((cells, idx) => {
+        rows.forEach((cells) => {
             if (!cells || cells.length === 0) return;
             const taskId = (cells[0] || '').toString().trim();
             const title = (cells[1] || '').toString().trim();
             if (!taskId && !title) return;
 
-            if (idx === 0) {
-                const looksLikeHeader = /^(task ?id)$/i.test(taskId) || /^(category|task)$/i.test(title);
-                if (looksLikeHeader) return;
-            }
+            // Skip the literal header row, wherever it lands (legend rows above it can shift the index)
+            const looksLikeHeader = /^task ?id$/i.test(taskId) && /^category$/i.test(title);
+            if (looksLikeHeader) return;
 
             const row = newRowObject(null);
             row.task_id = taskId;
             row.title = title || taskId;
-            row.weeks = parseFloat(cells[2]) || 0;
+            // Preserve blanks exactly as they appear in the spreadsheet — don't force them to 0
+            const weeksRaw = (cells[2] === undefined || cells[2] === null) ? '' : String(cells[2]).trim();
+            row.weeks = weeksRaw === '' ? '' : (parseFloat(weeksRaw) || 0);
             row.parent_id = (cells[3] || '').toString().trim();
             gridRows.push(row);
             imported++;
@@ -475,7 +486,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
 
         renderGrid();
         statusEl.className = 'save-status ok';
-        statusEl.innerText = `Imported ${imported} row(s). Set a Start Date on each (End Date auto-fills from Weeks), then click "Save All Changes".`;
+        statusEl.innerText = `Imported ${imported} row(s) exactly as they appear in your spreadsheet. Set a Start Date on each (End Date auto-fills from Weeks), then click "Save All Changes".`;
     }
 
     function handleFileImport(event) {
@@ -498,7 +509,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
                 statusEl.className = 'save-status err';
                 statusEl.innerText = 'Could not read file: ' + err.message;
             }
-            event.target.value = '';
+            event.target.value = ''; // allow re-uploading the same file later
         };
         reader.onerror = function() {
             statusEl.className = 'save-status err';
@@ -531,7 +542,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
     function markDirty(rowId) {
         const row = gridRows.find(r => r.rowId === rowId);
         if (row && !row.isNew) row.isDirty = true;
-        renderGrid(true);
+        renderGrid(true); // re-render lightly to update row coloring / duration without losing focus issues much
     }
 
     function updateRowField(rowId, field, value) {
@@ -546,7 +557,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
     function updateWeeksField(rowId, value) {
         const row = gridRows.find(r => r.rowId === rowId);
         if (!row) return;
-        row.weeks = parseFloat(value) || 0;
+        row.weeks = (value === '' || value === null) ? '' : (parseFloat(value) || 0);
         if (!row.isNew) row.isDirty = true;
         recalcEndDateFromWeeks(rowId);
     }
@@ -587,13 +598,13 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
 
             tr.innerHTML = `
                 <td class="row-num">${idx + 1}</td>
-                <td><input type="text" value="${escapeAttr(row.task_id)}" placeholder="Task - 100"
+                <td><input type="text" value="${escapeAttr(row.task_id)}" placeholder="—"
                     oninput="updateRowField('${row.rowId}','task_id',this.value)"></td>
                 <td><input type="text" value="${escapeAttr(row.title)}" placeholder="Category / task name"
                     oninput="updateRowField('${row.rowId}','title',this.value)"></td>
-                <td><input type="number" step="0.1" min="0" value="${row.weeks !== undefined && row.weeks !== null ? row.weeks : ''}" placeholder="0"
+                <td><input type="number" step="0.1" min="0" value="${row.weeks !== undefined && row.weeks !== null ? row.weeks : ''}" placeholder="—"
                     onchange="updateWeeksField('${row.rowId}',this.value)"></td>
-                <td><input type="text" value="${escapeAttr(row.parent_id)}" placeholder="Task - 5000"
+                <td><input type="text" value="${escapeAttr(row.parent_id)}" placeholder="—"
                     oninput="updateRowField('${row.rowId}','parent_id',this.value)"></td>
                 <td><input type="date" value="${row.start_date || ''}"
                     onchange="updateRowField('${row.rowId}','start_date',this.value)"></td>
@@ -610,6 +621,8 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
     }
 
     // ---------- DEPENDENCY MATRIX (Step 3) ----------
+    // A dependency row only makes sense once both tasks exist in the database (they need real UUIDs
+    // to reference in task_dependencies), so the predecessor/successor dropdowns list saved tasks only.
 
     function newDepRowObject(existing) {
         depRowCounter++;
@@ -661,6 +674,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
     }
 
     function refreshDependencyTaskOptions() {
+        // Only saved tasks (those with a real dbId) can be picked as predecessor/successor
         renderDependencyGrid();
     }
 
@@ -774,6 +788,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         statusEl.className = 'save-status pending';
         statusEl.innerText = 'Saving...';
 
+        // Validate rows that have at least a title before attempting save
         const rowsToProcess = gridRows.filter(r => r.title && r.title.trim());
 
         if (rowsToProcess.length === 0) {
@@ -783,6 +798,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         }
 
         try {
+            // PASS 1: Insert/update tasks themselves (without dependencies yet)
             for (const row of rowsToProcess) {
                 if (!row.start_date || !row.end_date) {
                     throw new Error(`Task "${row.title}" is missing a start or end date.`);
@@ -814,6 +830,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
                 row.isDirty = false;
             }
 
+            // PASS 2: refresh the dependency dropdowns now that tasks have real dbIds
             renderDependencyGrid();
 
             statusEl.className = 'save-status ok';
@@ -843,6 +860,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
             return;
         }
 
+        // Only fetch dependencies that involve this project's tasks
         const taskIds = (tasks || []).map(t => t.id);
         let dependencies = [];
         if (taskIds.length > 0) {
@@ -853,10 +871,12 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
             dependencies = deps || [];
         }
 
+        // Rebuild gridRows from DB state
         gridRows = (tasks || []).map(t => newRowObject(t));
-        if (gridRows.length === 0) addBlankRow(3);
+        if (gridRows.length === 0) addBlankRow(3); // give the user a few rows to start typing into
         else renderGrid();
 
+        // Rebuild the dependency matrix from DB state
         depRows = dependencies.map(d => newDepRowObject(d));
         renderDependencyGrid();
 
@@ -864,6 +884,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         document.getElementById('depSaveStatus').innerText = '';
     }
 
+    // Start with a few empty rows visible even before a project/connection is set, so the UI isn't blank
     addBlankRow(3);
 </script>
 </body>
