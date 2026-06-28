@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gantt Chart Database Input Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #1B365D;
+            --secondary: #4A5568;
+            --background: #F7FAFC;
+            --card-bg: #FFFFFF;
+            --border: #E2E8F0;
+            --success: #38A169;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background);
+            color: #2D3748;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 5px; }
+
+        /* Credentials Setup Box */
+        .config-box {
+            background: #EBF8FF;
+            border: 1px solid #BEE3F8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .config-box div { flex: 1; }
+        .config-box label { font-weight: bold; font-size: 12px; color: var(--primary); display: block; margin-bottom: 5px;}
+        .config-box input { width: 100%; padding: 8px; border: 1px solid #CBD5E0; border-radius: 4px; box-sizing: border-box; }
+        .config-btn { background: var(--primary); color: white; border: none; padding: 9px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;}
+
+        /* Split Screen Forms and Viewers */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        h2 { color: var(--primary); margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, text-area, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        button.submit-btn {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        button.submit-btn:hover { background-color: #2F855A; }
+
+        /* Real-time Task Preview Feed */
+        .task-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-item:last-child { border-bottom: none; }
+        .task-title { font-weight: bold; color: var(--primary); }
+        .task-meta { font-size: 12px; color: var(--secondary); margin-top: 4px; }
+        .badge { background: #E2E8F0; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Gantt Scheduling Data Entry Portal</h1>
+        <p>Input tasks directly into your live Supabase PostgreSQL database schemas.</p>
+    </header>
+
+    <div class="config-box">
+        <div>
+            <label>Supabase URL (From Step 5)</label>
+            <input type="text" id="supUrl" placeholder="https://your-project.supabase.co">
+        </div>
+        <div>
+            <label>Supabase Anon Public Key (From Step 5)</label>
+            <input type="password" id="supKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+        </div>
+        <button class="config-btn" onclick="initializeSupabase()">Connect App</button>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Add New Task Row</h2>
+            <form id="taskForm" onsubmit="handleTaskSubmit(event)">
+                <div class="form-group">
+                    <label for="projectId">Project ID (UUID Link)</label>
+                    <input type="text" id="projectId" required placeholder="Paste your Project ID UUID here">
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskTitle">Task Title</label>
+                    <input type="text" id="taskTitle" required placeholder="e.g., Pour Concrete Foundation">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" id="startDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">End Date</label>
+                        <input type="date" id="endDate" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="taskType">Row Type</label>
+                        <select id="taskType">
+                            <option value="task">Standard Task</option>
+                            <option value="project">Summary / Phase Header</option>
+                            <option value="milestone">Milestone (Zero Duration)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sortOrder">Visual Sort Order Index</label>
+                        <input type="number" id="sortOrder" value="1" min="1" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Save Row to Database</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Live Saved Tasks Data</h2>
+            <div id="taskListPlaceholder" style="color: var(--secondary); text-align: center; padding: 40px 0;">
+                Connect to your Supabase project to fetch live database tables.
+            </div>
+            <div class="task-list" id="taskList"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let supabaseClient = null;
+
+    // Initialize Connection using values from Step 5 Input UI
+    function initializeSupabase() {
+        const url = document.getElementById('supUrl').value.trim();
+        const key = document.getElementById('supKey').value.trim();
+
+        if(!url || !key) {
+            alert("Please provide both your unique Project URL and your Anon Public Key.");
+            return;
+        }
+
+        try {
+            // Instantiate the client via CDN framework window object
+            supabaseClient = supabase.createClient(url, key);
+            alert("Successfully connected to Supabase client instance! Fetching existing records...");
+            fetchTasks();
+        } catch (error) {
+            alert("Connection error: " + error.message);
+        }
+    }
+
+    // Read/Fetch Existing Task Rows from Supabase
+    async function fetchTasks() {
+        if(!supabaseClient) return;
+
+        document.getElementById('taskListPlaceholder').innerText = "Loading tables...";
+        
+        const { data, error } = await supabaseClient
+            .from('tasks')
+            .select('*')
+            .order('sort_order', { ascending: true });
+
+        if (error) {
+            alert("Error parsing table rows: " + error.message);
+            document.getElementById('taskListPlaceholder').innerText = "Error loading data.";
+            return;
+        }
+
+        const listContainer = document.getElementById('taskList');
+        const placeholder = document.getElementById('taskListPlaceholder');
+        listContainer.innerHTML = "";
+
+        if(data.length === 0) {
+            placeholder.style.display = "block";
+            placeholder.innerText = "No tasks found in this project database schema yet. Add one using the form!";
+            return;
+        }
+
+        placeholder.style.display = "none";
+        
+        data.forEach(task => {
+            const div = document.createElement('div');
+            div.className = 'task-item';
+            div.innerHTML = `
+                <div>
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-meta">Timeline: ${task.start_date} to ${task.end_date} (Order Index: ${task.sort_order})</div>
+                </div>
+                <span class="badge">${task.type.toUpperCase()}</span>
+            `;
+            listContainer.appendChild(div);
+        });
+    }
+
+    // Create/Insert New Task Row Into Supabase
+    async function handleTaskSubmit(event) {
+        event.preventDefault();
+
+        if(!supabaseClient) {
+            alert("Please connect your app using your API details at the top of the page first.");
+            return;
+        }
+
+        // Gather UI Input values
+        const project_id = document.getElementById('projectId').value.trim();
+        const title = document.getElementById('taskTitle').value.trim();
+        const start_date = document.getElementById('startDate').value;
+        const end_date = document.getElementById('endDate').value;
+        const type = document.getElementById('taskType').value;
+        const sort_order = parseInt(document.getElementById('sortOrder').value);
+
+        // Simple calculation fallback logic for tracking period
+        const duration = Math.ceil((new Date(end_date) - new Date(start_date)) / (1000 * 60 * 60 * 24));
+
+        // Package row mapping object payload matching the table schema
+        const payload = {
+            project_id,
+            title,
+            start_date,
+            end_date,
+            duration: duration >= 0 ? duration : 0,
+            type,
+            sort_order,
+            progress: 0.00
+        };
+
+        // Call Supabase API to append record
+        const { data, error } = await supabaseClient
+            .from('tasks')
+            .insert([payload]);
+
+        if (error) {
+            alert("Database write error: " + error.message);
+        } else {
+            alert("Row successfully committed to 'tasks' schema!");
+            document.getElementById('taskForm').reset();
+            // Retain the Project ID in the input box to make entry faster
+            document.getElementById('projectId').value = project_id; 
+            fetchTasks(); // Refresh the feed panel view
+        }
+    }
+</script>
+</body>
+</html>
