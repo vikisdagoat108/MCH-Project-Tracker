@@ -38,7 +38,6 @@
         h1 { color: var(--primary); margin-bottom: 5px; }
         h2 { color: var(--primary); margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
 
-        /* Configuration Banner */
         .config-box {
             background: #EBF8FF;
             border: 1px solid #BEE3F8;
@@ -75,7 +74,6 @@
 
         .status-banner { background: #EDF2F7; padding: 12px; border-radius: 6px; font-weight: bold; margin-bottom: 15px; border-left: 5px solid var(--accent); }
 
-        /* ----- Spreadsheet Grid ----- */
         .grid-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
         table.task-grid {
             width: 100%;
@@ -325,8 +323,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
 <script>
     let supabaseClient = null;
     let activeProjectId = null;
-    // Each row object tracks its DB state so we know whether to insert or update on save.
-    // { rowId (client-side unique key), dbId (uuid or null if new), isDirty, isNew }
     let gridRows = [];
     let rowCounter = 0;
     let depRows = [];
@@ -345,7 +341,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         fetchExistingProjects();
     }
 
-    // Pull every project already stored in the database so the user can resume one
     async function fetchExistingProjects() {
         if (!supabaseClient) return;
 
@@ -374,7 +369,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         }
     }
 
-    // Triggered when the user picks a project from the dropdown
     async function selectExistingProject(projectId) {
         if (!projectId) return;
         const { data, error } = await supabaseClient
@@ -396,7 +390,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         await refreshDataContainers();
     }
 
-    // STEP 1: Process and insert Project Data
     async function handleProjectSubmit(event) {
         event.preventDefault();
         if(!supabaseClient) return alert("Verify database connections prior to record setup.");
@@ -442,13 +435,11 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
     // ---------- IMPORT FROM EXCEL / CSV / PASTE ----------
 
     function parseDateValue(val) {
-        // Handles Excel serial dates, JS Date objects from SheetJS, and plain text dates
         if (val === null || val === undefined || val === '') return '';
         if (val instanceof Date) {
             return val.toISOString().split('T')[0];
         }
         if (typeof val === 'number') {
-            // Excel serial date (days since 1899-12-30)
             const d = new Date(Math.round((val - 25569) * 86400 * 1000));
             return isNaN(d) ? '' : d.toISOString().split('T')[0];
         }
@@ -458,7 +449,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
     }
 
     function importRowsFromArrays(rows) {
-        // rows: array of arrays, each like [task_id, category/title, weeks, parent_id]
         // Matches the Output Sheet layout: Task ID, Category, Weeks, Parent ID
         const statusEl = document.getElementById('importStatus');
         let imported = 0;
@@ -469,7 +459,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
             const title = (cells[1] || '').toString().trim();
             if (!taskId && !title) return;
 
-            // Skip an obvious header row
             if (idx === 0) {
                 const looksLikeHeader = /^(task ?id)$/i.test(taskId) || /^(category|task)$/i.test(title);
                 if (looksLikeHeader) return;
@@ -509,7 +498,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
                 statusEl.className = 'save-status err';
                 statusEl.innerText = 'Could not read file: ' + err.message;
             }
-            event.target.value = ''; // allow re-uploading the same file later
+            event.target.value = '';
         };
         reader.onerror = function() {
             statusEl.className = 'save-status err';
@@ -542,7 +531,7 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
     function markDirty(rowId) {
         const row = gridRows.find(r => r.rowId === rowId);
         if (row && !row.isNew) row.isDirty = true;
-        renderGrid(true); // re-render lightly to update row coloring / duration without losing focus issues much
+        renderGrid(true);
     }
 
     function updateRowField(rowId, field, value) {
@@ -621,8 +610,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
     }
 
     // ---------- DEPENDENCY MATRIX (Step 3) ----------
-    // A dependency row only makes sense once both tasks exist in the database (they need real UUIDs
-    // to reference in task_dependencies), so the predecessor/successor dropdowns list saved tasks only.
 
     function newDepRowObject(existing) {
         depRowCounter++;
@@ -674,7 +661,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
     }
 
     function refreshDependencyTaskOptions() {
-        // Only saved tasks (those with a real dbId) can be picked as predecessor/successor
         renderDependencyGrid();
     }
 
@@ -788,7 +774,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         statusEl.className = 'save-status pending';
         statusEl.innerText = 'Saving...';
 
-        // Validate rows that have at least a title before attempting save
         const rowsToProcess = gridRows.filter(r => r.title && r.title.trim());
 
         if (rowsToProcess.length === 0) {
@@ -798,7 +783,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         }
 
         try {
-            // PASS 1: Insert/update tasks themselves (without dependencies yet)
             for (const row of rowsToProcess) {
                 if (!row.start_date || !row.end_date) {
                     throw new Error(`Task "${row.title}" is missing a start or end date.`);
@@ -830,7 +814,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
                 row.isDirty = false;
             }
 
-            // PASS 2: refresh the dependency dropdowns now that tasks have real dbIds
             renderDependencyGrid();
 
             statusEl.className = 'save-status ok';
@@ -860,7 +843,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
             return;
         }
 
-        // Only fetch dependencies that involve this project's tasks
         const taskIds = (tasks || []).map(t => t.id);
         let dependencies = [];
         if (taskIds.length > 0) {
@@ -871,12 +853,10 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
             dependencies = deps || [];
         }
 
-        // Rebuild gridRows from DB state
         gridRows = (tasks || []).map(t => newRowObject(t));
-        if (gridRows.length === 0) addBlankRow(3); // give the user a few rows to start typing into
+        if (gridRows.length === 0) addBlankRow(3);
         else renderGrid();
 
-        // Rebuild the dependency matrix from DB state
         depRows = dependencies.map(d => newDepRowObject(d));
         renderDependencyGrid();
 
@@ -884,7 +864,6 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         document.getElementById('depSaveStatus').innerText = '';
     }
 
-    // Start with a few empty rows visible even before a project/connection is set, so the UI isn't blank
     addBlankRow(3);
 </script>
 </body>
