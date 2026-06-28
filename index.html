@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gantt Project Kickstart Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --primary: #1B365D;
@@ -214,10 +215,35 @@
     </div>
 
     <div class="card">
+        <h2>Import Tasks from Excel / CSV</h2>
+        <p style="color: var(--secondary); font-size: 14px; margin-top: -10px;">
+            For large spreadsheets, bring tasks in all at once instead of typing them by hand. Either upload a file or paste
+            cells copied directly from Excel. Imported rows land in the grid below as unsaved (green) rows — review or fix
+            anything, then click <strong>Save All Changes</strong> as usual.
+        </p>
+
+        <div class="form-group">
+            <label>Expected columns (in this order): Task ID, Category, Weeks, Parent ID</label>
+            <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" onchange="handleFileImport(event)">
+        </div>
+
+        <div class="form-group">
+            <label for="pasteImportArea">Or paste cells copied from Excel (tab-separated)</label>
+            <textarea id="pasteImportArea" style="height: 100px; font-family: monospace;"
+                placeholder="Task - 100&#9;Site Work&#9;0&#9;
+Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
+        </div>
+        <div class="btn-row" style="margin-top: 0;">
+            <button type="button" class="btn btn-secondary" onclick="handlePasteImport()">Import Pasted Rows</button>
+            <span class="save-status" id="importStatus"></span>
+        </div>
+    </div>
+
+    <div class="card">
         <h2>Step 2: Task Generation & Lag Matrix (Spreadsheet Mode)</h2>
         <p style="color: var(--secondary); font-size: 14px; margin-top: -10px;">
             Type directly into cells like a spreadsheet. Add as many rows as you need, then click <strong>Save All Changes</strong> once.
-            Existing tasks load automatically and can be edited in place.
+            Existing tasks load automatically and can be edited in place. Columns mirror your Output Sheet: Task ID, Category, Weeks, Parent ID.
         </p>
 
         <div class="grid-wrapper">
@@ -225,10 +251,12 @@
                 <thead>
                     <tr>
                         <th class="row-num">#</th>
-                        <th style="min-width:220px;">Task / Work Package Title</th>
+                        <th style="min-width:130px;">Task ID</th>
+                        <th style="min-width:220px;">Category</th>
+                        <th style="min-width:90px;">Weeks</th>
+                        <th style="min-width:130px;">Parent ID</th>
                         <th style="min-width:140px;">Start Date</th>
                         <th style="min-width:140px;">End Date</th>
-                        <th>Duration</th>
                         <th style="min-width:90px;">Progress %</th>
                         <th class="row-actions">Del</th>
                     </tr>
@@ -257,9 +285,9 @@
     <div class="card">
         <h2>Step 3: Dependency Matrix (Logic Links & Lag)</h2>
         <p style="color: var(--secondary); font-size: 14px; margin-top: -10px;">
-            Define which tasks depend on which. Pick a predecessor and successor from your saved tasks, choose the link type
-            (Finish-to-Start, Start-to-Start, Finish-to-Finish, or Start-to-Finish), and set the lag in days. Save your tasks first
-            in Step 2 so they're available to select here.
+            Define which tasks depend on which. Pick a Source (predecessor) and Target (successor) from your saved tasks, choose
+            the Flag (FS = Finish-to-Start, SS = Start-to-Start, FF = Finish-to-Finish, SF = Start-to-Finish), and set the Days
+            lag. Columns mirror your Output Sheet dependency block. Save your tasks first in Step 2 so they're available to select here.
         </p>
 
         <div class="grid-wrapper">
@@ -267,10 +295,11 @@
                 <thead>
                     <tr>
                         <th class="row-num">#</th>
-                        <th style="min-width:220px;">Predecessor Task</th>
-                        <th style="min-width:220px;">Successor Task</th>
-                        <th style="min-width:160px;">Link Type</th>
-                        <th style="min-width:90px;">Lag (Days)</th>
+                        <th style="min-width:90px;">Dependency</th>
+                        <th style="min-width:220px;">Source Task ID</th>
+                        <th style="min-width:220px;">Target Task ID</th>
+                        <th style="min-width:100px;">Flag</th>
+                        <th style="min-width:90px;">Days</th>
                         <th class="row-actions">Del</th>
                     </tr>
                 </thead>
@@ -400,11 +429,106 @@
             dbId: existing ? existing.id : null,
             isNew: !existing,
             isDirty: false,
+            task_id: existing ? (existing.task_id || '') : '',
             title: existing ? existing.title : '',
+            parent_id: existing ? (existing.parent_id || '') : '',
+            weeks: existing && existing.duration ? Math.round((existing.duration / 7) * 10) / 10 : '',
             start_date: existing ? existing.start_date : '',
             end_date: existing ? existing.end_date : '',
             progress: existing ? existing.progress : 0
         };
+    }
+
+    // ---------- IMPORT FROM EXCEL / CSV / PASTE ----------
+
+    function parseDateValue(val) {
+        // Handles Excel serial dates, JS Date objects from SheetJS, and plain text dates
+        if (val === null || val === undefined || val === '') return '';
+        if (val instanceof Date) {
+            return val.toISOString().split('T')[0];
+        }
+        if (typeof val === 'number') {
+            // Excel serial date (days since 1899-12-30)
+            const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+            return isNaN(d) ? '' : d.toISOString().split('T')[0];
+        }
+        const parsed = new Date(val);
+        if (!isNaN(parsed)) return parsed.toISOString().split('T')[0];
+        return String(val).trim();
+    }
+
+    function importRowsFromArrays(rows) {
+        // rows: array of arrays, each like [task_id, category/title, weeks, parent_id]
+        // Matches the Output Sheet layout: Task ID, Category, Weeks, Parent ID
+        const statusEl = document.getElementById('importStatus');
+        let imported = 0;
+
+        rows.forEach((cells, idx) => {
+            if (!cells || cells.length === 0) return;
+            const taskId = (cells[0] || '').toString().trim();
+            const title = (cells[1] || '').toString().trim();
+            if (!taskId && !title) return;
+
+            // Skip an obvious header row
+            if (idx === 0) {
+                const looksLikeHeader = /^(task ?id)$/i.test(taskId) || /^(category|task)$/i.test(title);
+                if (looksLikeHeader) return;
+            }
+
+            const row = newRowObject(null);
+            row.task_id = taskId;
+            row.title = title || taskId;
+            row.weeks = parseFloat(cells[2]) || 0;
+            row.parent_id = (cells[3] || '').toString().trim();
+            gridRows.push(row);
+            imported++;
+        });
+
+        renderGrid();
+        statusEl.className = 'save-status ok';
+        statusEl.innerText = `Imported ${imported} row(s). Set a Start Date on each (End Date auto-fills from Weeks), then click "Save All Changes".`;
+    }
+
+    function handleFileImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const statusEl = document.getElementById('importStatus');
+        statusEl.className = 'save-status pending';
+        statusEl.innerText = 'Reading file...';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                const firstSheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[firstSheetName];
+                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+                importRowsFromArrays(rows);
+            } catch (err) {
+                statusEl.className = 'save-status err';
+                statusEl.innerText = 'Could not read file: ' + err.message;
+            }
+            event.target.value = ''; // allow re-uploading the same file later
+        };
+        reader.onerror = function() {
+            statusEl.className = 'save-status err';
+            statusEl.innerText = 'Could not read file.';
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function handlePasteImport() {
+        const text = document.getElementById('pasteImportArea').value;
+        const statusEl = document.getElementById('importStatus');
+        if (!text || !text.trim()) {
+            statusEl.className = 'save-status err';
+            statusEl.innerText = 'Paste box is empty.';
+            return;
+        }
+        const rows = text.trim().split('\n').map(line => line.split('\t'));
+        importRowsFromArrays(rows);
+        document.getElementById('pasteImportArea').value = '';
     }
 
     function addBlankRow(count) {
@@ -426,20 +550,25 @@
         if (!row) return;
         row[field] = value;
         if (!row.isNew) row.isDirty = true;
-        updateDurationCell(rowId);
         if (field === 'title') refreshDependencyTaskOptions();
+        if (field === 'start_date') recalcEndDateFromWeeks(rowId);
     }
 
-    function updateDurationCell(rowId) {
+    function updateWeeksField(rowId, value) {
         const row = gridRows.find(r => r.rowId === rowId);
-        const cell = document.getElementById('dur_' + rowId);
-        if (!row || !cell) return;
-        if (row.start_date && row.end_date) {
-            const d = Math.ceil((new Date(row.end_date) - new Date(row.start_date)) / (1000 * 60 * 60 * 24));
-            cell.innerText = d >= 0 ? d + ' d' : '—';
-        } else {
-            cell.innerText = '—';
-        }
+        if (!row) return;
+        row.weeks = parseFloat(value) || 0;
+        if (!row.isNew) row.isDirty = true;
+        recalcEndDateFromWeeks(rowId);
+    }
+
+    function recalcEndDateFromWeeks(rowId) {
+        const row = gridRows.find(r => r.rowId === rowId);
+        if (!row || !row.start_date || !row.weeks) return;
+        const start = new Date(row.start_date);
+        const end = new Date(start.getTime() + row.weeks * 7 * 24 * 60 * 60 * 1000);
+        row.end_date = end.toISOString().split('T')[0];
+        renderGrid();
     }
 
     function removeRow(rowId) {
@@ -469,19 +598,23 @@
 
             tr.innerHTML = `
                 <td class="row-num">${idx + 1}</td>
-                <td><input type="text" value="${escapeAttr(row.title)}" placeholder="Task title"
+                <td><input type="text" value="${escapeAttr(row.task_id)}" placeholder="Task - 100"
+                    oninput="updateRowField('${row.rowId}','task_id',this.value)"></td>
+                <td><input type="text" value="${escapeAttr(row.title)}" placeholder="Category / task name"
                     oninput="updateRowField('${row.rowId}','title',this.value)"></td>
+                <td><input type="number" step="0.1" min="0" value="${row.weeks !== undefined && row.weeks !== null ? row.weeks : ''}" placeholder="0"
+                    onchange="updateWeeksField('${row.rowId}',this.value)"></td>
+                <td><input type="text" value="${escapeAttr(row.parent_id)}" placeholder="Task - 5000"
+                    oninput="updateRowField('${row.rowId}','parent_id',this.value)"></td>
                 <td><input type="date" value="${row.start_date || ''}"
                     onchange="updateRowField('${row.rowId}','start_date',this.value)"></td>
                 <td><input type="date" value="${row.end_date || ''}"
                     onchange="updateRowField('${row.rowId}','end_date',this.value)"></td>
-                <td class="col-duration" id="dur_${row.rowId}">—</td>
                 <td><input type="number" value="${row.progress}" min="0" max="100" step="1"
                     onchange="updateRowField('${row.rowId}','progress',parseFloat(this.value)||0)"></td>
                 <td class="row-actions"><button onclick="removeRow('${row.rowId}')" title="Remove row">✕</button></td>
             `;
             body.appendChild(tr);
-            updateDurationCell(row.rowId);
         });
 
         refreshDependencyTaskOptions();
@@ -549,7 +682,8 @@
         const savedTasks = gridRows.filter(r => r.dbId);
         let html = '<option value="">-- Select a task --</option>';
         savedTasks.forEach(t => {
-            const label = t.title && t.title.trim() ? t.title : '(untitled task)';
+            const titleLabel = t.title && t.title.trim() ? t.title : '(untitled task)';
+            const label = t.task_id && t.task_id.trim() ? `${t.task_id} — ${titleLabel}` : titleLabel;
             html += `<option value="${t.dbId}" ${t.dbId === selectedDbId ? 'selected' : ''}>${escapeAttr(label)}</option>`;
         });
         return html;
@@ -566,6 +700,7 @@
 
             tr.innerHTML = `
                 <td class="row-num">${idx + 1}</td>
+                <td style="text-align:center; color: var(--secondary); font-weight:600;">Dep ${idx + 1}</td>
                 <td><select onchange="updateDepField('${row.depRowId}','source_task_id',this.value)">
                     ${buildTaskOptionsHtml(row.source_task_id)}
                 </select></td>
@@ -573,10 +708,10 @@
                     ${buildTaskOptionsHtml(row.target_task_id)}
                 </select></td>
                 <td><select onchange="updateDepField('${row.depRowId}','type',this.value)">
-                    <option value="FS" ${row.type==='FS'?'selected':''}>Finish-to-Start (FS)</option>
-                    <option value="SS" ${row.type==='SS'?'selected':''}>Start-to-Start (SS)</option>
-                    <option value="FF" ${row.type==='FF'?'selected':''}>Finish-to-Finish (FF)</option>
-                    <option value="SF" ${row.type==='SF'?'selected':''}>Start-to-Finish (SF)</option>
+                    <option value="FS" ${row.type==='FS'?'selected':''}>FS</option>
+                    <option value="SS" ${row.type==='SS'?'selected':''}>SS</option>
+                    <option value="FF" ${row.type==='FF'?'selected':''}>FF</option>
+                    <option value="SF" ${row.type==='SF'?'selected':''}>SF</option>
                 </select></td>
                 <td><input type="number" value="${row.lag}" min="-90" max="90"
                     onchange="updateDepField('${row.depRowId}','lag',parseInt(this.value)||0)"></td>
@@ -672,6 +807,8 @@
 
                 const payload = {
                     project_id: activeProjectId,
+                    task_id: row.task_id ? row.task_id.trim() : null,
+                    parent_id: row.parent_id ? row.parent_id.trim() : null,
                     title: row.title.trim(),
                     start_date: row.start_date,
                     end_date: row.end_date,
