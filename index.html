@@ -499,7 +499,7 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
 
     function importRowsFromArrays(rows) {
         // rows: array of arrays, each like [task_id, category/title, weeks, parent_id]
-        // Matches the Output Sheet layout: Task ID, Category, Weeks, Parent ID
+        // Matches the Output Sheet layout: Task ID, Category, Weeks, Parent ID — every field is optional
         const statusEl = document.getElementById('importStatus');
         let imported = 0;
 
@@ -507,7 +507,11 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
             if (!cells || cells.length === 0) return;
             const taskId = (cells[0] || '').toString().trim();
             const title = (cells[1] || '').toString().trim();
-            if (!taskId && !title) return;
+            const weeksRaw = (cells[2] === undefined || cells[2] === null) ? '' : String(cells[2]).trim();
+            const parentId = (cells[3] || '').toString().trim();
+
+            // Skip a totally blank row
+            if (!taskId && !title && !weeksRaw && !parentId) return;
 
             // Skip the literal header row, wherever it lands (legend rows above it can shift the index)
             const looksLikeHeader = /^task ?id$/i.test(taskId) && /^category$/i.test(title);
@@ -515,18 +519,17 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
 
             const row = newRowObject(null);
             row.task_id = taskId;
-            row.title = title || taskId;
+            row.title = title || taskId || '(untitled task)';
             // Preserve blanks exactly as they appear in the spreadsheet — don't force them to 0
-            const weeksRaw = (cells[2] === undefined || cells[2] === null) ? '' : String(cells[2]).trim();
             row.weeks = weeksRaw === '' ? '' : (parseFloat(weeksRaw) || 0);
-            row.parent_id = (cells[3] || '').toString().trim();
+            row.parent_id = parentId;
             gridRows.push(row);
             imported++;
         });
 
         renderGrid();
         statusEl.className = 'save-status ok';
-        statusEl.innerText = `Imported ${imported} row(s) exactly as they appear in your spreadsheet. Set a Start Date on each (End Date auto-fills from Weeks), then click "Save All Changes".`;
+        statusEl.innerText = `Imported ${imported} row(s) exactly as they appear in your spreadsheet. All fields are optional — fill in only what you have, then click "Save All Changes".`;
     }
 
     function handleFileImport(event) {
@@ -912,14 +915,23 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
         statusEl.className = 'save-status pending';
         statusEl.innerText = 'Saving...';
 
-        // Validate rows that have at least a title before attempting save
-        const rowsToProcess = gridRows.filter(r => r.title && r.title.trim());
+        // Nothing is required — any row with at least one field filled in gets saved
+        const rowsToProcess = gridRows.filter(r =>
+            (r.task_id && r.task_id.trim()) ||
+            (r.title && r.title.trim()) ||
+            (r.parent_id && r.parent_id.trim()) ||
+            (r.weeks !== '' && r.weeks !== undefined && r.weeks !== null) ||
+            r.start_date || r.end_date ||
+            (r.progress !== '' && r.progress !== undefined && r.progress !== null)
+        );
 
         if (rowsToProcess.length === 0) {
             statusEl.className = 'save-status err';
-            statusEl.innerText = 'Nothing to save — add a task title first.';
+            statusEl.innerText = 'Nothing to save — every row is completely empty.';
             return;
         }
+
+        let missingColumnsWarned = false;
 
         try {
             // PASS 1: Insert/update tasks themselves (without dependencies yet)
@@ -933,11 +945,13 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
                     duration = Math.round(row.weeks * 7);
                 }
 
-                const payload = {
+                const titleValue = (row.title && row.title.trim()) ? row.title.trim() : (row.task_id && row.task_id.trim() ? row.task_id.trim() : '(untitled task)');
+
+                const fullPayload = {
                     project_id: activeProjectId,
                     task_id: row.task_id ? row.task_id.trim() : null,
                     parent_id: row.parent_id ? row.parent_id.trim() : null,
-                    title: row.title.trim(),
+                    title: titleValue,
                     start_date: row.start_date || null,
                     end_date: row.end_date || null,
                     duration: duration,
@@ -946,23 +960,48 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
                     progress: (row.progress === '' || row.progress === undefined || row.progress === null) ? null : row.progress
                 };
 
-                if (row.isNew) {
-                    const { data, error } = await supabaseClient.from('tasks').insert([payload]).select();
-                    if (error) throw new Error(`Insert failed for "${row.title}": ${error.message}`);
-                    row.dbId = data[0].id;
-                    row.isNew = false;
-                } else {
-                    const { error } = await supabaseClient.from('tasks').update(payload).eq('id', row.dbId);
-                    if (error) throw new Error(`Update failed for "${row.title}": ${error.message}`);
+                // Fallback payload in case task_id/parent_id columns don't exist in this database yet
+                const fallbackPayload = { ...fullPayload };
+                delete fallbackPayload.task_id;
+                delete fallbackPayload.parent_id;
+
+                async function attemptSave(payload, isFallback) {
+                    if (row.isNew) {
+                        const { data, error } = await supabaseClient.from('tasks').insert([payload]).select();
+                        if (error) {
+                            const missingCol = /could not find the '(task_id|parent_id)' column/i.test(error.message);
+                            if (missingCol && !isFallback) {
+                                missingColumnsWarned = true;
+                                return attemptSave(fallbackPayload, true);
+                            }
+                            throw new Error(`Insert failed for "${titleValue}": ${error.message}`);
+                        }
+                        row.dbId = data[0].id;
+                        row.isNew = false;
+                    } else {
+                        const { error } = await supabaseClient.from('tasks').update(payload).eq('id', row.dbId);
+                        if (error) {
+                            const missingCol = /could not find the '(task_id|parent_id)' column/i.test(error.message);
+                            if (missingCol && !isFallback) {
+                                missingColumnsWarned = true;
+                                return attemptSave(fallbackPayload, true);
+                            }
+                            throw new Error(`Update failed for "${titleValue}": ${error.message}`);
+                        }
+                    }
                 }
+
+                await attemptSave(fullPayload, false);
                 row.isDirty = false;
             }
 
             // PASS 2: refresh the dependency dropdowns now that tasks have real dbIds
             renderDependencyGrid();
 
-            statusEl.className = 'save-status ok';
-            statusEl.innerText = `Saved ${rowsToProcess.length} task(s) successfully.`;
+            statusEl.className = missingColumnsWarned ? 'save-status err' : 'save-status ok';
+            statusEl.innerText = missingColumnsWarned
+                ? `Saved ${rowsToProcess.length} task(s), but your "tasks" table is missing the task_id/parent_id columns — those values weren't saved. Run the ALTER TABLE commands in Supabase, then re-save to capture them.`
+                : `Saved ${rowsToProcess.length} task(s) successfully.`;
             renderGrid();
             await refreshDataContainers();
 
