@@ -17,150 +17,48 @@
             --accent: #3182CE;
             --danger: #E53E3E;
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background);
-            color: #2D3748;
-            margin: 0;
-            padding: 20px;
-        }
-
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--background); color: #2D3748; margin: 0; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 20px;
-        }
-
+        header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid var(--border); padding-bottom: 20px; }
         h1 { color: var(--primary); margin-bottom: 5px; }
         h2 { color: var(--primary); margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-
-        /* Configuration Banner */
-        .config-box {
-            background: #EBF8FF;
-            border: 1px solid #BEE3F8;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            display: flex;
-            gap: 15px;
-            align-items: flex-end;
-        }
+        .config-box { background: #EBF8FF; border: 1px solid #BEE3F8; padding: 15px; border-radius: 8px; margin-bottom: 30px; display: flex; gap: 15px; align-items: flex-end; }
         .config-box div { flex: 1; }
-        .config-box label { font-weight: bold; font-size: 12px; color: var(--primary); display: block; margin-bottom: 5px;}
+        .config-box label { font-weight: bold; font-size: 12px; color: var(--primary); display: block; margin-bottom: 5px; }
         .config-box input { width: 100%; padding: 8px; border: 1px solid #CBD5E0; border-radius: 4px; box-sizing: border-box; }
-        .config-btn { background: var(--primary); color: white; border: none; padding: 9px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;}
-
+        .config-btn { background: var(--primary); color: white; border: none; padding: 9px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 30px; }
-
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
         input, textarea, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; font-size: 14px; }
         textarea { resize: vertical; height: 80px; }
-
         .btn { color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
-        .btn-primary { background-color: var(--accent); }
-        .btn-primary:hover { background-color: #2B6CB0; }
-        .btn-success { background-color: var(--success); }
-        .btn-success:hover { background-color: #2F855A; }
-        .btn-small { padding: 6px 12px; font-size: 13px; }
-        .btn-danger { background-color: var(--danger); }
-        .btn-danger:hover { background-color: #C53030; }
-        .btn-secondary { background-color: var(--secondary); }
-        .btn-secondary:hover { background-color: #2D3748; }
-        .btn-row { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-
+        .btn-primary { background-color: var(--accent); } .btn-primary:hover { background-color: #2B6CB0; }
+        .btn-success { background-color: var(--success); } .btn-success:hover { background-color: #2F855A; }
+        .btn-danger { background-color: var(--danger); } .btn-danger:hover { background-color: #C53030; }
+        .btn-secondary { background-color: var(--secondary); } .btn-secondary:hover { background-color: #2D3748; }
+        .btn-row { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; align-items: center; }
         .status-banner { background: #EDF2F7; padding: 12px; border-radius: 6px; font-weight: bold; margin-bottom: 15px; border-left: 5px solid var(--accent); }
-
-        /* ----- Spreadsheet Grid ----- */
         .grid-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
-        table.task-grid {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1100px;
-            font-size: 13px;
-        }
-        table.task-grid th {
-            background: var(--primary);
-            color: white;
-            text-align: left;
-            padding: 10px 8px;
-            position: sticky;
-            top: 0;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        table.task-grid td {
-            border: 1px solid var(--border);
-            padding: 0;
-            background: white;
-        }
-        table.task-grid tr.new-row td {
-            background: #F0FFF4;
-        }
-        table.task-grid tr.dirty-row td {
-            background: #FFFFF0;
-        }
-        table.task-grid td input,
-        table.task-grid td select {
-            width: 100%;
-            height: 100%;
-            border: none;
-            padding: 8px;
-            font-size: 13px;
-            box-sizing: border-box;
-            background: transparent;
-            border-radius: 0;
-        }
-        table.task-grid td input:focus,
-        table.task-grid td select:focus {
-            outline: 2px solid var(--accent);
-            background: #EBF8FF;
-            position: relative;
-            z-index: 1;
-        }
-        table.task-grid .row-num {
-            text-align: center;
-            color: var(--secondary);
-            font-weight: bold;
-            background: #F7FAFC !important;
-            width: 30px;
-        }
-        table.task-grid .row-actions {
-            text-align: center;
-            width: 40px;
-            background: #F7FAFC !important;
-        }
-        table.task-grid .row-actions button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            color: var(--danger);
-            padding: 4px;
-        }
-        table.task-grid .col-duration {
-            text-align: center;
-            color: var(--secondary);
-            font-weight: 600;
-            background: #F7FAFC !important;
-            padding: 8px;
-            width: 70px;
-        }
+        table.task-grid { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 13px; }
+        table.task-grid th { background: var(--primary); color: white; text-align: left; padding: 10px 8px; position: sticky; top: 0; font-weight: 600; white-space: nowrap; }
+        table.task-grid td { border: 1px solid var(--border); padding: 0; background: white; }
+        table.task-grid tr.new-row td { background: #F0FFF4; }
+        table.task-grid tr.dirty-row td { background: #FFFFF0; }
+        table.task-grid td input, table.task-grid td select { width: 100%; height: 100%; border: none; padding: 8px; font-size: 13px; box-sizing: border-box; background: transparent; border-radius: 0; }
+        table.task-grid td input:focus, table.task-grid td select:focus { outline: 2px solid var(--accent); background: #EBF8FF; position: relative; z-index: 1; }
+        table.task-grid .row-num { text-align: center; color: var(--secondary); font-weight: bold; background: #F7FAFC !important; width: 30px; }
+        table.task-grid .row-actions { text-align: center; width: 40px; background: #F7FAFC !important; }
+        table.task-grid .row-actions button { background: none; border: none; cursor: pointer; font-size: 16px; color: var(--danger); padding: 4px; }
         .grid-legend { display: flex; gap: 20px; font-size: 12px; color: var(--secondary); margin-top: 10px; }
         .legend-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
-
-        .save-status { font-size: 13px; font-weight: 600; margin-left: auto; align-self: center; }
-        .save-status.ok { color: var(--success); }
-        .save-status.err { color: var(--danger); }
-        .save-status.pending { color: var(--secondary); }
+        .save-status { font-size: 13px; font-weight: 600; margin-left: auto; }
+        .save-status.ok { color: var(--success); } .save-status.err { color: var(--danger); } .save-status.pending { color: var(--secondary); }
+        .info-box { background: #FFFBEB; border: 1px solid #F6E05E; border-radius: 6px; padding: 12px 15px; font-size: 13px; margin-bottom: 15px; color: #744210; }
+        .info-box code { background: rgba(0,0,0,0.08); padding: 2px 5px; border-radius: 3px; font-family: monospace; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <header>
         <h1>Project Initialization & Gantt Engine Portal</h1>
@@ -168,22 +66,22 @@
     </header>
 
     <div class="config-box">
-        <div>
-            <label>Supabase URL</label>
-            <input type="text" id="supUrl" placeholder="https://your-project.supabase.co">
-        </div>
-        <div>
-            <label>Supabase Anon Public Key</label>
-            <input type="password" id="supKey" placeholder="eyJhbGciOiJIUzI1Ni...">
-        </div>
+        <div><label>Supabase URL</label><input type="text" id="supUrl" placeholder="https://your-project.supabase.co"></div>
+        <div><label>Supabase Anon Public Key</label><input type="password" id="supKey" placeholder="eyJhbGciOiJIUzI1Ni..."></div>
         <button class="config-btn" onclick="initializeSupabase()">Establish Connection</button>
+    </div>
+
+    <div class="info-box">
+        <strong>One-time SQL setup</strong> — run this once in Supabase SQL Editor before saving tasks:<br><br>
+        <code>ALTER TABLE tasks ALTER COLUMN progress DROP NOT NULL;</code><br>
+        <code>ALTER TABLE tasks ALTER COLUMN progress SET DEFAULT 0;</code><br>
+        <code>ALTER TABLE tasks ALTER COLUMN sort_order DROP NOT NULL;</code><br>
+        <code>ALTER TABLE tasks ALTER COLUMN type DROP NOT NULL;</code><br>
+        <code>ALTER TABLE tasks ADD COLUMN IF NOT EXISTS task_label TEXT;</code>
     </div>
 
     <div class="card">
         <h2>Step 0: Resume an Existing Project</h2>
-        <p style="color: var(--secondary); font-size: 14px; margin-top: -10px;">
-            Connecting fetches every project already stored in your database. Pick one to load its tasks and dependencies straight into the grid below.
-        </p>
         <div class="form-group">
             <label for="existingProjectSelect">Existing Projects in Database</label>
             <select id="existingProjectSelect" onchange="selectExistingProject(this.value)">
@@ -195,85 +93,62 @@
     <div class="card">
         <h2>Step 1: Define Project Environment</h2>
         <form id="projectForm" onsubmit="handleProjectSubmit(event)">
-            <div class="form-group">
-                <label for="projName">Project Name</label>
-                <input type="text" id="projName" required placeholder="e.g., Commercial Warehouse Build Out">
-            </div>
-            <div class="form-group">
-                <label for="projDesc">Scope Description</label>
-                <textarea id="projDesc" placeholder="Summarize high-level objectives, targets, and physical boundaries..."></textarea>
-            </div>
+            <div class="form-group"><label>Project Name</label><input type="text" id="projName" required placeholder="e.g., 3455 Pikes Peak 1"></div>
+            <div class="form-group"><label>Scope Description</label><textarea id="projDesc" placeholder="Summarize high-level objectives, targets, and physical boundaries..."></textarea></div>
             <button type="submit" class="btn btn-primary">Initialize Project Environment</button>
         </form>
-
-        <div style="margin-top: 25px;">
-            <label>Active Working Project Reference UUID:</label>
-            <div id="activeProjectBanner" class="status-banner" style="color: var(--secondary);">
-                No active project initialized yet.
-            </div>
+        <div style="margin-top:25px;">
+            <label>Active Working Project:</label>
+            <div id="activeProjectBanner" class="status-banner" style="color:var(--secondary);">No active project initialized yet.</div>
         </div>
     </div>
 
     <div class="card">
         <h2>Import Tasks from Excel / CSV</h2>
-        <p style="color: var(--secondary); font-size: 14px; margin-top: -10px;">
-            For large spreadsheets, bring tasks in all at once instead of typing them by hand. Either upload a file or paste
-            cells copied directly from Excel. Imported rows land in the grid below as unsaved (green) rows — review or fix
-            anything, then click <strong>Save All Changes</strong> as usual.
+        <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
+            Upload your Excel file or paste copied cells. Expected columns: <strong>Task Label, Category, Weeks, Parent Label</strong>. All fields optional.
         </p>
-
         <div class="form-group">
-            <label>Expected columns (in this order): Task ID, Category, Weeks, Parent ID</label>
+            <label>Upload .xlsx / .xls / .csv file</label>
             <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" onchange="handleFileImport(event)">
         </div>
-
         <div class="form-group">
-            <label for="pasteImportArea">Or paste cells copied from Excel (tab-separated)</label>
-            <textarea id="pasteImportArea" style="height: 100px; font-family: monospace;"
-                placeholder="Task - 100&#9;Site Work&#9;0&#9;
-Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
+            <label>Or paste cells copied from Excel (tab-separated)</label>
+            <textarea id="pasteImportArea" style="height:80px;font-family:monospace;" placeholder="Task - 100&#9;Site Work&#9;&#9;&#10;Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
         </div>
-        <div class="btn-row" style="margin-top: 0;">
+        <div class="btn-row" style="margin-top:0;">
             <button type="button" class="btn btn-secondary" onclick="handlePasteImport()">Import Pasted Rows</button>
             <span class="save-status" id="importStatus"></span>
         </div>
     </div>
 
     <div class="card">
-        <h2>Step 2: Task Generation & Lag Matrix (Spreadsheet Mode)</h2>
-        <p style="color: var(--secondary); font-size: 14px; margin-top: -10px;">
-            Type directly into cells like a spreadsheet. Add as many rows as you need, then click <strong>Save All Changes</strong> once.
-            Existing tasks load automatically and can be edited in place. Columns mirror your Output Sheet: Task ID, Category, Weeks, Parent ID.
+        <h2>Step 2: Task Grid</h2>
+        <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
+            Edit tasks directly. Task Label = your reference ID (e.g. "Task - 100"). Parent Label = the Task Label of the parent task, resolved to a UUID on save. Green = new unsaved. Yellow = edited.
         </p>
-
         <div class="grid-wrapper">
-            <table class="task-grid" id="taskGrid">
-                <thead>
-                    <tr>
-                        <th class="row-num">#</th>
-                        <th style="min-width:130px;">Task ID</th>
-                        <th style="min-width:220px;">Category</th>
-                        <th style="min-width:90px;">Weeks</th>
-                        <th style="min-width:130px;">Parent ID</th>
-                        <th style="min-width:140px;">Start Date</th>
-                        <th style="min-width:140px;">End Date</th>
-                        <th style="min-width:90px;">Progress %</th>
-                        <th class="row-actions">Del</th>
-                    </tr>
-                </thead>
-                <tbody id="gridBody">
-                    <!-- rows injected by JS -->
-                </tbody>
+            <table class="task-grid">
+                <thead><tr>
+                    <th class="row-num">#</th>
+                    <th style="min-width:130px;">Task Label</th>
+                    <th style="min-width:220px;">Category / Title</th>
+                    <th style="min-width:80px;">Weeks</th>
+                    <th style="min-width:130px;">Parent Label</th>
+                    <th style="min-width:130px;">Start Date</th>
+                    <th style="min-width:130px;">End Date</th>
+                    <th style="min-width:80px;">Progress %</th>
+                    <th class="row-actions">Del</th>
+                </tr></thead>
+                <tbody id="gridBody"></tbody>
             </table>
         </div>
-
         <div class="grid-legend">
-            <span><span class="legend-swatch" style="background:#F0FFF4;border:1px solid #C6F6D5;"></span>New row (not yet saved)</span>
-            <span><span class="legend-swatch" style="background:#FFFFF0;border:1px solid #FEFCBF;"></span>Existing row with unsaved edits</span>
+            <span><span class="legend-swatch" style="background:#F0FFF4;border:1px solid #C6F6D5;"></span>New (unsaved)</span>
+            <span><span class="legend-swatch" style="background:#FFFFF0;border:1px solid #FEFCBF;"></span>Edited (unsaved changes)</span>
         </div>
-
         <div class="btn-row">
-            <button type="button" class="btn btn-secondary" onclick="addBlankRow()">+ Add Row</button>
+            <button type="button" class="btn btn-secondary" onclick="addBlankRow(1)">+ Add Row</button>
             <button type="button" class="btn btn-secondary" onclick="addBlankRow(5)">+ Add 5 Rows</button>
             <button type="button" class="btn btn-secondary" onclick="addBlankRow(10)">+ Add 10 Rows</button>
             <button type="button" class="btn btn-success" onclick="saveAllRows()">Save All Changes</button>
@@ -284,60 +159,42 @@ Task - 102&#9;Dirt Work&#9;3&#9;Task - 100"></textarea>
 
     <div class="card">
         <h2>Import Dependencies from Excel / CSV</h2>
-        <p style="color: var(--secondary); font-size: 14px; margin-top: -10px;">
-            Bring your dependency block in all at once. Tasks must already be saved (with matching Task IDs) before importing —
-            each row is matched to a saved task by its Task ID. Expected columns: Source Task ID, Target Task ID, Flag, Days.
+        <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
+            Expected columns: <strong>Source Task Label, Target Task Label, Flag (FS/SS/FF/SF), Days</strong>. Tasks must be saved first.
         </p>
-
         <div class="form-group">
-            <label>Expected columns (in this order): Source Task ID, Target Task ID, Flag, Days</label>
+            <label>Upload .xlsx / .xls / .csv file</label>
             <input type="file" id="depImportFileInput" accept=".xlsx,.xls,.csv" onchange="handleDepFileImport(event)">
         </div>
-
         <div class="form-group">
-            <label for="depPasteImportArea">Or paste cells copied from Excel (tab-separated)</label>
-            <textarea id="depPasteImportArea" style="height: 100px; font-family: monospace;"
-                placeholder="Task - 100&#9;Task - 5001&#9;FS&#9;0
-Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
+            <label>Or paste cells copied from Excel (tab-separated)</label>
+            <textarea id="depPasteImportArea" style="height:80px;font-family:monospace;" placeholder="Task - 100&#9;Task - 102&#9;FS&#9;0"></textarea>
         </div>
-        <div class="btn-row" style="margin-top: 0;">
+        <div class="btn-row" style="margin-top:0;">
             <button type="button" class="btn btn-secondary" onclick="handleDepPasteImport()">Import Pasted Rows</button>
             <span class="save-status" id="depImportStatus"></span>
         </div>
     </div>
 
     <div class="card">
-        <h2>Step 3: Dependency Matrix (Logic Links & Lag)</h2>
-        <p style="color: var(--secondary); font-size: 14px; margin-top: -10px;">
-            Define which tasks depend on which. Pick a Source (predecessor) and Target (successor) from your saved tasks, choose
-            the Flag (FS = Finish-to-Start, SS = Start-to-Start, FF = Finish-to-Finish, SF = Start-to-Finish), and set the Days
-            lag. Columns mirror your Output Sheet dependency block. Save your tasks first in Step 2 so they're available to select here.
+        <h2>Step 3: Dependency Matrix</h2>
+        <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
+            Define logic links. FS = Finish-to-Start, SS = Start-to-Start, FF = Finish-to-Finish, SF = Start-to-Finish.
         </p>
-
         <div class="grid-wrapper">
-            <table class="task-grid" id="depGrid">
-                <thead>
-                    <tr>
-                        <th class="row-num">#</th>
-                        <th style="min-width:90px;">Dependency</th>
-                        <th style="min-width:220px;">Source Task ID</th>
-                        <th style="min-width:220px;">Target Task ID</th>
-                        <th style="min-width:100px;">Flag</th>
-                        <th style="min-width:90px;">Days</th>
-                        <th class="row-actions">Del</th>
-                    </tr>
-                </thead>
-                <tbody id="depGridBody">
-                    <!-- rows injected by JS -->
-                </tbody>
+            <table class="task-grid">
+                <thead><tr>
+                    <th class="row-num">#</th>
+                    <th style="min-width:80px;">Dep #</th>
+                    <th style="min-width:220px;">Source Task (Predecessor)</th>
+                    <th style="min-width:220px;">Target Task (Successor)</th>
+                    <th style="min-width:90px;">Flag</th>
+                    <th style="min-width:80px;">Days Lag</th>
+                    <th class="row-actions">Del</th>
+                </tr></thead>
+                <tbody id="depGridBody"></tbody>
             </table>
         </div>
-
-        <div class="grid-legend">
-            <span><span class="legend-swatch" style="background:#F0FFF4;border:1px solid #C6F6D5;"></span>New link (not yet saved)</span>
-            <span><span class="legend-swatch" style="background:#FFFFF0;border:1px solid #FEFCBF;"></span>Existing link with unsaved edits</span>
-        </div>
-
         <div class="btn-row">
             <button type="button" class="btn btn-secondary" onclick="addDependencyRow()">+ Add Dependency</button>
             <button type="button" class="btn btn-success" onclick="saveAllDependencies()">Save All Dependencies</button>
@@ -347,26 +204,22 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
 
     <div class="card">
         <h2>Step 4: Gantt Chart</h2>
-        <p style="color: var(--secondary); font-size: 14px; margin-top: -10px;">
-            Visualizes every saved task with a Start Date and End Date as a timeline bar, colored by Progress %, with
-            dependency arrows drawn between linked tasks. Tasks missing dates are listed separately below the chart —
-            fill in their Start/End Date and regenerate to include them.
+        <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
+            Renders tasks with Start and End dates. Bars show progress. Dashed lines show dependencies.
         </p>
-        <div class="btn-row" style="margin-top:0; margin-bottom: 15px;">
-            <button type="button" class="btn btn-secondary" onclick="renderGanttChart()">Generate / Refresh Gantt Chart</button>
+        <div class="btn-row" style="margin-top:0;margin-bottom:15px;">
+            <button type="button" class="btn btn-secondary" onclick="renderGanttChart()">Generate / Refresh Chart</button>
         </div>
-        <div id="ganttContainer" style="overflow-x:auto; border:1px solid var(--border); border-radius:6px; padding: 10px; background:white;">
-            <p style="color:var(--secondary); padding: 20px; text-align:center;">Click "Generate / Refresh Gantt Chart" once your tasks have dates.</p>
+        <div id="ganttContainer" style="overflow-x:auto;border:1px solid var(--border);border-radius:6px;padding:10px;background:white;min-height:80px;">
+            <p style="color:var(--secondary);padding:20px;text-align:center;">Click Generate once your tasks have start and end dates.</p>
         </div>
-        <div id="ganttMissingDates" style="margin-top: 10px; font-size: 13px; color: var(--secondary);"></div>
+        <div id="ganttMissingDates" style="margin-top:10px;font-size:13px;color:var(--secondary);"></div>
     </div>
 </div>
 
 <script>
     let supabaseClient = null;
     let activeProjectId = null;
-    // Each row object tracks its DB state so we know whether to insert or update on save.
-    // { rowId (client-side unique key), dbId (uuid or null if new), isDirty, isNew }
     let gridRows = [];
     let rowCounter = 0;
     let depRows = [];
@@ -375,92 +228,48 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
     function initializeSupabase() {
         const url = document.getElementById('supUrl').value.trim();
         const key = document.getElementById('supKey').value.trim();
-
-        if(!url || !key) {
-            alert("Provide operational connection keys before building your schedule parameters.");
-            return;
-        }
+        if (!url || !key) return alert("Enter both the Supabase URL and Anon Key first.");
         supabaseClient = supabase.createClient(url, key);
-        alert("Client initialized successfully.");
+        alert("Connected successfully.");
         fetchExistingProjects();
     }
 
-    // Pull every project already stored in the database so the user can resume one
     async function fetchExistingProjects() {
         if (!supabaseClient) return;
-
-        const { data, error } = await supabaseClient
-            .from('projects')
-            .select('*')
-            .order('created_at', { ascending: false });
-
+        const { data, error } = await supabaseClient.from('projects').select('*').order('created_at', { ascending: false });
         const sel = document.getElementById('existingProjectSelect');
-
-        if (error) {
-            sel.innerHTML = '<option value="">-- Could not load projects: ' + error.message + ' --</option>';
-            return;
-        }
-
+        if (error) { sel.innerHTML = `<option value="">-- Error: ${error.message} --</option>`; return; }
         sel.innerHTML = '<option value="">-- Select a project to resume --</option>';
-        (data || []).forEach(proj => {
-            const opt = document.createElement('option');
-            opt.value = proj.id;
-            opt.innerText = proj.name;
-            sel.appendChild(opt);
+        (data || []).forEach(p => {
+            const o = document.createElement('option');
+            o.value = p.id; o.innerText = p.name; sel.appendChild(o);
         });
-
-        if (!data || data.length === 0) {
-            sel.innerHTML = '<option value="">-- No projects found yet, create one in Step 1 --</option>';
-        }
+        if (!data || data.length === 0) sel.innerHTML = '<option value="">-- No projects yet, create one below --</option>';
     }
 
-    // Triggered when the user picks a project from the dropdown
     async function selectExistingProject(projectId) {
         if (!projectId) return;
-        const { data, error } = await supabaseClient
-            .from('projects')
-            .select('*')
-            .eq('id', projectId)
-            .single();
-
-        if (error) {
-            alert('Could not load that project: ' + error.message);
-            return;
-        }
-
+        const { data, error } = await supabaseClient.from('projects').select('*').eq('id', projectId).single();
+        if (error) return alert('Could not load project: ' + error.message);
         activeProjectId = data.id;
         document.getElementById('projName').value = data.name || '';
         document.getElementById('projDesc').value = data.description || '';
-        document.getElementById('activeProjectBanner').innerText = `${data.name} \n[UUID: ${activeProjectId}]`;
-
+        document.getElementById('activeProjectBanner').innerText = `${data.name}\n[UUID: ${activeProjectId}]`;
         await refreshDataContainers();
     }
 
-    // STEP 1: Process and insert Project Data
     async function handleProjectSubmit(event) {
         event.preventDefault();
-        if(!supabaseClient) return alert("Verify database connections prior to record setup.");
-
+        if (!supabaseClient) return alert("Connect to Supabase first.");
         const name = document.getElementById('projName').value.trim();
         const description = document.getElementById('projDesc').value.trim();
-
-        const { data, error } = await supabaseClient
-            .from('projects')
-            .insert([{ name, description }])
-            .select();
-
-        if (error) {
-            alert("Project insertion failure: " + error.message);
-        } else if (data && data.length > 0) {
-            activeProjectId = data[0].id;
-            document.getElementById('activeProjectBanner').innerText = `${data[0].name} \n[UUID: ${activeProjectId}]`;
-            alert("Project committed. You can now build out tasks in the grid below.");
-            fetchExistingProjects();
-            refreshDataContainers();
-        }
+        const { data, error } = await supabaseClient.from('projects').insert([{ name, description }]).select();
+        if (error) return alert("Could not create project: " + error.message);
+        activeProjectId = data[0].id;
+        document.getElementById('activeProjectBanner').innerText = `${data[0].name}\n[UUID: ${activeProjectId}]`;
+        fetchExistingProjects();
+        refreshDataContainers();
     }
-
-    // ---------- GRID HELPERS ----------
 
     function newRowObject(existing) {
         rowCounter++;
@@ -469,67 +278,49 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
             dbId: existing ? existing.id : null,
             isNew: !existing,
             isDirty: false,
-            task_id: existing ? (existing.task_id || '') : '',
-            title: existing ? existing.title : '',
-            parent_id: existing ? (existing.parent_id || '') : '',
+            task_label: existing ? (existing.task_label || '') : '',
+            title: existing ? (existing.title || '') : '',
+            parent_label: '',
             weeks: existing && existing.duration ? Math.round((existing.duration / 7) * 10) / 10 : '',
-            start_date: existing ? existing.start_date : '',
-            end_date: existing ? existing.end_date : '',
-            progress: existing && existing.progress !== null && existing.progress !== undefined ? existing.progress : ''
+            start_date: existing ? (existing.start_date || '') : '',
+            end_date: existing ? (existing.end_date || '') : '',
+            progress: (existing && existing.progress !== null && existing.progress !== undefined) ? existing.progress : ''
         };
     }
 
-    // ---------- IMPORT FROM EXCEL / CSV / PASTE ----------
-
     function parseDateValue(val) {
-        // Handles Excel serial dates, JS Date objects from SheetJS, and plain text dates
-        if (val === null || val === undefined || val === '') return '';
-        if (val instanceof Date) {
-            return val.toISOString().split('T')[0];
-        }
+        if (!val && val !== 0) return '';
+        if (val instanceof Date) return val.toISOString().split('T')[0];
         if (typeof val === 'number') {
-            // Excel serial date (days since 1899-12-30)
             const d = new Date(Math.round((val - 25569) * 86400 * 1000));
             return isNaN(d) ? '' : d.toISOString().split('T')[0];
         }
-        const parsed = new Date(val);
-        if (!isNaN(parsed)) return parsed.toISOString().split('T')[0];
-        return String(val).trim();
+        const p = new Date(val);
+        return isNaN(p) ? String(val).trim() : p.toISOString().split('T')[0];
     }
 
     function importRowsFromArrays(rows) {
-        // rows: array of arrays, each like [task_id, category/title, weeks, parent_id]
-        // Matches the Output Sheet layout: Task ID, Category, Weeks, Parent ID — every field is optional
         const statusEl = document.getElementById('importStatus');
         let imported = 0;
-
-        rows.forEach((cells) => {
+        rows.forEach(cells => {
             if (!cells || cells.length === 0) return;
-            const taskId = (cells[0] || '').toString().trim();
-            const title = (cells[1] || '').toString().trim();
-            const weeksRaw = (cells[2] === undefined || cells[2] === null) ? '' : String(cells[2]).trim();
-            const parentId = (cells[3] || '').toString().trim();
-
-            // Skip a totally blank row
-            if (!taskId && !title && !weeksRaw && !parentId) return;
-
-            // Skip the literal header row, wherever it lands (legend rows above it can shift the index)
-            const looksLikeHeader = /^task ?id$/i.test(taskId) && /^category$/i.test(title);
-            if (looksLikeHeader) return;
-
+            const taskLabel = (cells[0] || '').toString().trim();
+            const title     = (cells[1] || '').toString().trim();
+            const weeksRaw  = (cells[2] === undefined || cells[2] === null) ? '' : String(cells[2]).trim();
+            const parentLbl = (cells[3] || '').toString().trim();
+            if (!taskLabel && !title && !weeksRaw && !parentLbl) return;
+            if (/^task[\s-]*(id|label)$/i.test(taskLabel) && /^category$/i.test(title)) return;
             const row = newRowObject(null);
-            row.task_id = taskId;
-            row.title = title || taskId || '(untitled task)';
-            // Preserve blanks exactly as they appear in the spreadsheet — don't force them to 0
-            row.weeks = weeksRaw === '' ? '' : (parseFloat(weeksRaw) || 0);
-            row.parent_id = parentId;
+            row.task_label   = taskLabel;
+            row.title        = title || taskLabel || '(untitled)';
+            row.weeks        = weeksRaw === '' ? '' : (parseFloat(weeksRaw) || 0);
+            row.parent_label = parentLbl;
             gridRows.push(row);
             imported++;
         });
-
         renderGrid();
         statusEl.className = 'save-status ok';
-        statusEl.innerText = `Imported ${imported} row(s) exactly as they appear in your spreadsheet. All fields are optional — fill in only what you have, then click "Save All Changes".`;
+        statusEl.innerText = `Imported ${imported} row(s). Click "Save All Changes" when ready.`;
     }
 
     function handleFileImport(event) {
@@ -538,109 +329,72 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
         const statusEl = document.getElementById('importStatus');
         statusEl.className = 'save-status pending';
         statusEl.innerText = 'Reading file...';
-
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = e => {
             try {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                const firstSheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[firstSheetName];
-                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
-                importRowsFromArrays(rows);
-            } catch (err) {
-                statusEl.className = 'save-status err';
-                statusEl.innerText = 'Could not read file: ' + err.message;
-            }
-            event.target.value = ''; // allow re-uploading the same file later
-        };
-        reader.onerror = function() {
-            statusEl.className = 'save-status err';
-            statusEl.innerText = 'Could not read file.';
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    function handlePasteImport() {
-        const text = document.getElementById('pasteImportArea').value;
-        const statusEl = document.getElementById('importStatus');
-        if (!text || !text.trim()) {
-            statusEl.className = 'save-status err';
-            statusEl.innerText = 'Paste box is empty.';
-            return;
-        }
-        const rows = text.trim().split('\n').map(line => line.split('\t'));
-        importRowsFromArrays(rows);
-        document.getElementById('pasteImportArea').value = '';
-    }
-
-    // ---------- DEPENDENCY IMPORT FROM EXCEL / CSV / PASTE ----------
-
-    function importDependencyRowsFromArrays(rows) {
-        // Matches the Output Sheet dependency block: Source Task ID, Target Task ID, Flag, Days
-        const statusEl = document.getElementById('depImportStatus');
-        let imported = 0;
-        let skipped = 0;
-
-        rows.forEach((cells) => {
-            if (!cells || cells.length === 0) return;
-            const sourceTaskId = (cells[0] || '').toString().trim();
-            const targetTaskId = (cells[1] || '').toString().trim();
-            if (!sourceTaskId || !targetTaskId) return;
-
-            // Skip the literal header row
-            if (/^source ?task ?id$/i.test(sourceTaskId)) return;
-
-            // Match against saved tasks by their Task ID text field
-            const sourceRow = gridRows.find(r => r.task_id && r.task_id.trim() === sourceTaskId && r.dbId);
-            const targetRow = gridRows.find(r => r.task_id && r.task_id.trim() === targetTaskId && r.dbId);
-
-            if (!sourceRow || !targetRow) {
-                skipped++;
-                return;
-            }
-
-            const dep = newDepRowObject(null);
-            dep.source_task_id = sourceRow.dbId;
-            dep.target_task_id = targetRow.dbId;
-            dep.type = (cells[2] || 'FS').toString().trim().toUpperCase();
-            dep.lag = parseInt(cells[3]) || 0;
-            depRows.push(dep);
-            imported++;
-        });
-
-        renderDependencyGrid();
-        statusEl.className = skipped > 0 ? 'save-status err' : 'save-status ok';
-        statusEl.innerText = skipped > 0
-            ? `Imported ${imported} link(s). Skipped ${skipped} row(s) — their Task IDs don't match any saved task yet (save those tasks first, then re-import).`
-            : `Imported ${imported} dependency link(s). Review them below, then click "Save All Dependencies".`;
-    }
-
-    function handleDepFileImport(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const statusEl = document.getElementById('depImportStatus');
-        statusEl.className = 'save-status pending';
-        statusEl.innerText = 'Reading file...';
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                const firstSheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[firstSheetName];
-                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
-                importDependencyRowsFromArrays(rows);
+                const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                importRowsFromArrays(XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' }));
             } catch (err) {
                 statusEl.className = 'save-status err';
                 statusEl.innerText = 'Could not read file: ' + err.message;
             }
             event.target.value = '';
         };
-        reader.onerror = function() {
-            statusEl.className = 'save-status err';
-            statusEl.innerText = 'Could not read file.';
+        reader.onerror = () => { statusEl.className = 'save-status err'; statusEl.innerText = 'File read error.'; };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function handlePasteImport() {
+        const text = document.getElementById('pasteImportArea').value;
+        const statusEl = document.getElementById('importStatus');
+        if (!text || !text.trim()) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing pasted.'; return; }
+        importRowsFromArrays(text.trim().split('\n').map(l => l.split('\t')));
+        document.getElementById('pasteImportArea').value = '';
+    }
+
+    function importDependencyRowsFromArrays(rows) {
+        const statusEl = document.getElementById('depImportStatus');
+        let imported = 0, skipped = 0;
+        rows.forEach(cells => {
+            if (!cells || cells.length === 0) return;
+            const srcLabel = (cells[0] || '').toString().trim();
+            const tgtLabel = (cells[1] || '').toString().trim();
+            if (!srcLabel || !tgtLabel) return;
+            if (/^source/i.test(srcLabel)) return;
+            const srcRow = gridRows.find(r => r.task_label === srcLabel && r.dbId);
+            const tgtRow = gridRows.find(r => r.task_label === tgtLabel && r.dbId);
+            if (!srcRow || !tgtRow) { skipped++; return; }
+            const dep = newDepRowObject(null);
+            dep.source_task_id = srcRow.dbId;
+            dep.target_task_id = tgtRow.dbId;
+            dep.type = (cells[2] || 'FS').toString().trim().toUpperCase();
+            dep.lag  = parseInt(cells[3]) || 0;
+            depRows.push(dep);
+            imported++;
+        });
+        renderDependencyGrid();
+        statusEl.className = skipped > 0 ? 'save-status err' : 'save-status ok';
+        statusEl.innerText = skipped > 0
+            ? `Imported ${imported}, skipped ${skipped} (Task Labels not found — save those tasks first).`
+            : `Imported ${imported} link(s). Click "Save All Dependencies".`;
+    }
+
+    function handleDepFileImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const statusEl = document.getElementById('depImportStatus');
+        statusEl.className = 'save-status pending'; statusEl.innerText = 'Reading file...';
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                importDependencyRowsFromArrays(XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' }));
+            } catch (err) {
+                statusEl.className = 'save-status err'; statusEl.innerText = 'Could not read file: ' + err.message;
+            }
+            event.target.value = '';
         };
         reader.readAsArrayBuffer(file);
     }
@@ -648,37 +402,20 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
     function handleDepPasteImport() {
         const text = document.getElementById('depPasteImportArea').value;
         const statusEl = document.getElementById('depImportStatus');
-        if (!text || !text.trim()) {
-            statusEl.className = 'save-status err';
-            statusEl.innerText = 'Paste box is empty.';
-            return;
-        }
-        const rows = text.trim().split('\n').map(line => line.split('\t'));
-        importDependencyRowsFromArrays(rows);
+        if (!text || !text.trim()) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing pasted.'; return; }
+        importDependencyRowsFromArrays(text.trim().split('\n').map(l => l.split('\t')));
         document.getElementById('depPasteImportArea').value = '';
     }
 
-    function addBlankRow(count) {
-        const n = count || 1;
-        for (let i = 0; i < n; i++) {
-            gridRows.push(newRowObject(null));
-        }
-        renderGrid();
-    }
-
-    function markDirty(rowId) {
-        const row = gridRows.find(r => r.rowId === rowId);
-        if (row && !row.isNew) row.isDirty = true;
-        renderGrid(true); // re-render lightly to update row coloring / duration without losing focus issues much
-    }
+    function escapeAttr(s) { return s ? String(s).replace(/"/g, '&quot;') : ''; }
 
     function updateRowField(rowId, field, value) {
         const row = gridRows.find(r => r.rowId === rowId);
         if (!row) return;
         row[field] = value;
         if (!row.isNew) row.isDirty = true;
-        if (field === 'title') refreshDependencyTaskOptions();
-        if (field === 'start_date') recalcEndDateFromWeeks(rowId);
+        if (field === 'start_date') recalcEndDate(rowId);
+        if (field === 'task_label') renderDependencyGrid();
     }
 
     function updateWeeksField(rowId, value) {
@@ -686,70 +423,52 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
         if (!row) return;
         row.weeks = (value === '' || value === null) ? '' : (parseFloat(value) || 0);
         if (!row.isNew) row.isDirty = true;
-        recalcEndDateFromWeeks(rowId);
+        recalcEndDate(rowId);
     }
 
-    function recalcEndDateFromWeeks(rowId) {
+    function recalcEndDate(rowId) {
         const row = gridRows.find(r => r.rowId === rowId);
-        if (!row || !row.start_date || !row.weeks) return;
+        if (!row || !row.start_date || row.weeks === '' || row.weeks === null) return;
         const start = new Date(row.start_date);
-        const end = new Date(start.getTime() + row.weeks * 7 * 24 * 60 * 60 * 1000);
+        const end   = new Date(start.getTime() + row.weeks * 7 * 86400000);
         row.end_date = end.toISOString().split('T')[0];
+        renderGrid();
+    }
+
+    function addBlankRow(n) {
+        for (let i = 0; i < n; i++) gridRows.push(newRowObject(null));
         renderGrid();
     }
 
     function removeRow(rowId) {
         const row = gridRows.find(r => r.rowId === rowId);
         if (!row) return;
-        if (!row.isNew) {
-            if (!confirm('This task is already saved to the database. Remove it permanently?')) return;
-            deleteExistingTask(row.dbId);
-        }
+        if (!row.isNew && !confirm('This task is saved in the database. Delete it permanently?')) return;
+        if (!row.isNew) supabaseClient.from('tasks').delete().eq('id', row.dbId);
         gridRows = gridRows.filter(r => r.rowId !== rowId);
         renderGrid();
-    }
-
-    async function deleteExistingTask(dbId) {
-        if (!supabaseClient) return;
-        const { error } = await supabaseClient.from('tasks').delete().eq('id', dbId);
-        if (error) alert('Could not delete task: ' + error.message);
     }
 
     function renderGrid() {
         const body = document.getElementById('gridBody');
         body.innerHTML = '';
-
         gridRows.forEach((row, idx) => {
             const tr = document.createElement('tr');
             tr.className = row.isNew ? 'new-row' : (row.isDirty ? 'dirty-row' : '');
-
             tr.innerHTML = `
                 <td class="row-num">${idx + 1}</td>
-                <td><input type="text" value="${escapeAttr(row.task_id)}" placeholder="—"
-                    oninput="updateRowField('${row.rowId}','task_id',this.value)"></td>
-                <td><input type="text" value="${escapeAttr(row.title)}" placeholder="Category / task name"
-                    oninput="updateRowField('${row.rowId}','title',this.value)"></td>
-                <td><input type="number" step="0.1" min="0" value="${row.weeks !== undefined && row.weeks !== null ? row.weeks : ''}" placeholder="—"
-                    onchange="updateWeeksField('${row.rowId}',this.value)"></td>
-                <td><input type="text" value="${escapeAttr(row.parent_id)}" placeholder="—"
-                    oninput="updateRowField('${row.rowId}','parent_id',this.value)"></td>
-                <td><input type="date" value="${row.start_date || ''}"
-                    onchange="updateRowField('${row.rowId}','start_date',this.value)"></td>
-                <td><input type="date" value="${row.end_date || ''}"
-                    onchange="updateRowField('${row.rowId}','end_date',this.value)"></td>
-                <td><input type="number" value="${row.progress !== undefined && row.progress !== null ? row.progress : ''}" min="0" max="100" step="1" placeholder="—"
-                    onchange="updateRowField('${row.rowId}','progress', this.value === '' ? '' : (parseFloat(this.value)||0))"></td>
-                <td class="row-actions"><button onclick="removeRow('${row.rowId}')" title="Remove row">✕</button></td>
-            `;
+                <td><input type="text" value="${escapeAttr(row.task_label)}" placeholder="Task - 100" oninput="updateRowField('${row.rowId}','task_label',this.value)"></td>
+                <td><input type="text" value="${escapeAttr(row.title)}" placeholder="Category / task name" oninput="updateRowField('${row.rowId}','title',this.value)"></td>
+                <td><input type="number" step="0.1" min="0" value="${row.weeks !== '' && row.weeks !== undefined ? row.weeks : ''}" placeholder="—" onchange="updateWeeksField('${row.rowId}',this.value)"></td>
+                <td><input type="text" value="${escapeAttr(row.parent_label)}" placeholder="Task - 5000" oninput="updateRowField('${row.rowId}','parent_label',this.value)"></td>
+                <td><input type="date" value="${row.start_date || ''}" onchange="updateRowField('${row.rowId}','start_date',this.value)"></td>
+                <td><input type="date" value="${row.end_date || ''}" onchange="updateRowField('${row.rowId}','end_date',this.value)"></td>
+                <td><input type="number" min="0" max="100" step="1" value="${row.progress !== '' && row.progress !== null && row.progress !== undefined ? row.progress : ''}" placeholder="—" onchange="updateRowField('${row.rowId}','progress', this.value === '' ? '' : (parseFloat(this.value)||0))"></td>
+                <td class="row-actions"><button onclick="removeRow('${row.rowId}')" title="Delete">✕</button></td>`;
             body.appendChild(tr);
         });
-
-        refreshDependencyTaskOptions();
+        renderDependencyGrid();
     }
-
-    // ---------- DEPENDENCY MATRIX (Step 3) ----------
-    // A dependency row only makes sense once both tasks exist in the database (they need real UUIDs
-    // to reference in task_dependencies), so the predecessor/successor dropdowns list saved tasks only.
 
     function newDepRowObject(existing) {
         depRowCounter++;
@@ -765,12 +484,17 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
         };
     }
 
+    function buildTaskOptions(selectedDbId) {
+        let html = '<option value="">-- Select task --</option>';
+        gridRows.filter(r => r.dbId).forEach(t => {
+            const lbl = t.task_label ? `${t.task_label} — ${t.title}` : t.title;
+            html += `<option value="${t.dbId}" ${t.dbId === selectedDbId ? 'selected' : ''}>${escapeAttr(lbl)}</option>`;
+        });
+        return html;
+    }
+
     function addDependencyRow() {
-        const savedTasks = gridRows.filter(r => r.dbId);
-        if (savedTasks.length < 2) {
-            alert('You need at least 2 saved tasks before you can link a dependency. Save your tasks in Step 2 first.');
-            return;
-        }
+        if (gridRows.filter(r => r.dbId).length < 2) return alert('Save at least 2 tasks first.');
         depRows.push(newDepRowObject(null));
         renderDependencyGrid();
     }
@@ -780,274 +504,185 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
         if (!row) return;
         row[field] = value;
         if (!row.isNew) row.isDirty = true;
-        renderDependencyGrid();
     }
 
     function removeDependencyRow(depRowId) {
         const row = depRows.find(r => r.depRowId === depRowId);
         if (!row) return;
-        if (!row.isNew) {
-            if (!confirm('This dependency link is already saved. Remove it permanently?')) return;
-            deleteExistingDependency(row.dbId);
-        }
+        if (!row.isNew && !confirm('Delete this dependency permanently?')) return;
+        if (!row.isNew) supabaseClient.from('task_dependencies').delete().eq('id', row.dbId);
         depRows = depRows.filter(r => r.depRowId !== depRowId);
         renderDependencyGrid();
-    }
-
-    async function deleteExistingDependency(dbId) {
-        if (!supabaseClient) return;
-        const { error } = await supabaseClient.from('task_dependencies').delete().eq('id', dbId);
-        if (error) alert('Could not delete dependency: ' + error.message);
-    }
-
-    function refreshDependencyTaskOptions() {
-        // Only saved tasks (those with a real dbId) can be picked as predecessor/successor
-        renderDependencyGrid();
-    }
-
-    function buildTaskOptionsHtml(selectedDbId) {
-        const savedTasks = gridRows.filter(r => r.dbId);
-        let html = '<option value="">-- Select a task --</option>';
-        savedTasks.forEach(t => {
-            const titleLabel = t.title && t.title.trim() ? t.title : '(untitled task)';
-            const label = t.task_id && t.task_id.trim() ? `${t.task_id} — ${titleLabel}` : titleLabel;
-            html += `<option value="${t.dbId}" ${t.dbId === selectedDbId ? 'selected' : ''}>${escapeAttr(label)}</option>`;
-        });
-        return html;
     }
 
     function renderDependencyGrid() {
         const body = document.getElementById('depGridBody');
         if (!body) return;
         body.innerHTML = '';
-
         depRows.forEach((row, idx) => {
             const tr = document.createElement('tr');
             tr.className = row.isNew ? 'new-row' : (row.isDirty ? 'dirty-row' : '');
-
             tr.innerHTML = `
                 <td class="row-num">${idx + 1}</td>
-                <td style="text-align:center; color: var(--secondary); font-weight:600;">Dep ${idx + 1}</td>
-                <td><select onchange="updateDepField('${row.depRowId}','source_task_id',this.value)">
-                    ${buildTaskOptionsHtml(row.source_task_id)}
-                </select></td>
-                <td><select onchange="updateDepField('${row.depRowId}','target_task_id',this.value)">
-                    ${buildTaskOptionsHtml(row.target_task_id)}
-                </select></td>
+                <td style="text-align:center;color:var(--secondary);font-weight:600;padding:8px;">Dep ${idx + 1}</td>
+                <td><select onchange="updateDepField('${row.depRowId}','source_task_id',this.value)">${buildTaskOptions(row.source_task_id)}</select></td>
+                <td><select onchange="updateDepField('${row.depRowId}','target_task_id',this.value)">${buildTaskOptions(row.target_task_id)}</select></td>
                 <td><select onchange="updateDepField('${row.depRowId}','type',this.value)">
-                    <option value="FS" ${row.type==='FS'?'selected':''}>FS</option>
-                    <option value="SS" ${row.type==='SS'?'selected':''}>SS</option>
-                    <option value="FF" ${row.type==='FF'?'selected':''}>FF</option>
-                    <option value="SF" ${row.type==='SF'?'selected':''}>SF</option>
+                    <option value="FS" ${row.type==='FS'?'selected':''}>FS – Finish to Start</option>
+                    <option value="SS" ${row.type==='SS'?'selected':''}>SS – Start to Start</option>
+                    <option value="FF" ${row.type==='FF'?'selected':''}>FF – Finish to Finish</option>
+                    <option value="SF" ${row.type==='SF'?'selected':''}>SF – Start to Finish</option>
                 </select></td>
-                <td><input type="number" value="${row.lag}" min="-90" max="90"
-                    onchange="updateDepField('${row.depRowId}','lag',parseInt(this.value)||0)"></td>
-                <td class="row-actions"><button onclick="removeDependencyRow('${row.depRowId}')" title="Remove link">✕</button></td>
-            `;
+                <td><input type="number" value="${row.lag}" min="-90" max="90" onchange="updateDepField('${row.depRowId}','lag',parseInt(this.value)||0)"></td>
+                <td class="row-actions"><button onclick="removeDependencyRow('${row.depRowId}')" title="Delete">✕</button></td>`;
             body.appendChild(tr);
         });
     }
 
-    async function saveAllDependencies() {
-        if (!supabaseClient) return alert("Verify database connections.");
-        if (!activeProjectId) return alert("Initialize Step 1 (Project Setup) first.");
-
-        const statusEl = document.getElementById('depSaveStatus');
-        statusEl.className = 'save-status pending';
-        statusEl.innerText = 'Saving...';
-
-        const rowsToProcess = depRows.filter(r => r.source_task_id && r.target_task_id);
-
-        if (rowsToProcess.length === 0) {
-            statusEl.className = 'save-status err';
-            statusEl.innerText = 'Nothing to save — pick a predecessor and successor task first.';
-            return;
-        }
-
-        try {
-            for (const row of rowsToProcess) {
-                if (row.source_task_id === row.target_task_id) {
-                    throw new Error('A task cannot depend on itself — check your selections.');
-                }
-
-                const payload = {
-                    source_task_id: row.source_task_id,
-                    target_task_id: row.target_task_id,
-                    type: row.type || 'FS',
-                    lag: row.lag || 0
-                };
-
-                if (row.isNew) {
-                    const { data, error } = await supabaseClient.from('task_dependencies').insert([payload]).select();
-                    if (error) throw new Error(`Could not save dependency link: ${error.message}`);
-                    row.dbId = data[0].id;
-                    row.isNew = false;
-                } else {
-                    const { error } = await supabaseClient.from('task_dependencies').update(payload).eq('id', row.dbId);
-                    if (error) throw new Error(`Could not update dependency link: ${error.message}`);
-                }
-                row.isDirty = false;
-            }
-
-            statusEl.className = 'save-status ok';
-            statusEl.innerText = `Saved ${rowsToProcess.length} dependency link(s) successfully.`;
-            renderDependencyGrid();
-            await refreshDataContainers();
-
-        } catch (err) {
-            statusEl.className = 'save-status err';
-            statusEl.innerText = err.message;
-        }
-    }
-
-    function escapeAttr(str) {
-        if (!str) return '';
-        return String(str).replace(/"/g, '&quot;');
-    }
-
-    // ---------- SAVE LOGIC ----------
-
     async function saveAllRows() {
-        if (!supabaseClient) return alert("Verify database connections.");
-        if (!activeProjectId) return alert("Initialize Step 1 (Project Setup) first to acquire a valid Project ID link.");
-
+        if (!supabaseClient) return alert("Connect to Supabase first.");
+        if (!activeProjectId) return alert("Select or create a project first.");
         const statusEl = document.getElementById('saveStatus');
         statusEl.className = 'save-status pending';
-        statusEl.innerText = 'Saving...';
+        statusEl.innerText = 'Saving…';
 
-        // Nothing is required — any row with at least one field filled in gets saved
-        const rowsToProcess = gridRows.filter(r =>
-            (r.task_id && r.task_id.trim()) ||
-            (r.title && r.title.trim()) ||
-            (r.parent_id && r.parent_id.trim()) ||
-            (r.weeks !== '' && r.weeks !== undefined && r.weeks !== null) ||
+        const toSave = gridRows.filter(r =>
+            r.task_label || r.title || r.parent_label ||
+            (r.weeks !== '' && r.weeks !== undefined) ||
             r.start_date || r.end_date ||
-            (r.progress !== '' && r.progress !== undefined && r.progress !== null)
+            (r.progress !== '' && r.progress !== undefined)
         );
+        if (toSave.length === 0) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing to save.'; return; }
 
-        if (rowsToProcess.length === 0) {
-            statusEl.className = 'save-status err';
-            statusEl.innerText = 'Nothing to save — every row is completely empty.';
-            return;
+        function getLabelMap() {
+            const map = {};
+            gridRows.forEach(r => { if (r.task_label && r.dbId) map[r.task_label.trim()] = r.dbId; });
+            return map;
         }
 
-        let missingColumnsWarned = false;
+        let saved = 0;
+        const warnings = [];
 
         try {
-            // PASS 1: Insert/update tasks themselves (without dependencies yet)
-            for (const row of rowsToProcess) {
+            for (const row of toSave) {
+                const labelMap = getLabelMap();
+                let parentUUID = null;
+                if (row.parent_label && row.parent_label.trim()) {
+                    parentUUID = labelMap[row.parent_label.trim()] || null;
+                    if (!parentUUID) warnings.push(`Parent "${row.parent_label}" not found for "${row.task_label || row.title}" — left blank.`);
+                }
                 let duration = null;
                 if (row.start_date && row.end_date) {
-                    const d = Math.ceil((new Date(row.end_date) - new Date(row.start_date)) / (1000 * 60 * 60 * 24));
+                    const d = Math.ceil((new Date(row.end_date) - new Date(row.start_date)) / 86400000);
                     duration = d >= 0 ? d : 0;
                 } else if (row.weeks !== '' && row.weeks !== undefined && row.weeks !== null) {
-                    // No dates yet — fall back to Weeks so duration isn't lost
                     duration = Math.round(row.weeks * 7);
                 }
+                const titleVal = (row.title && row.title.trim()) ? row.title.trim()
+                               : (row.task_label && row.task_label.trim()) ? row.task_label.trim() : '(untitled)';
 
-                const titleValue = (row.title && row.title.trim()) ? row.title.trim() : (row.task_id && row.task_id.trim() ? row.task_id.trim() : '(untitled task)');
-
-                const fullPayload = {
+                const payload = {
                     project_id: activeProjectId,
-                    task_id: row.task_id ? row.task_id.trim() : null,
-                    parent_id: row.parent_id ? row.parent_id.trim() : null,
-                    title: titleValue,
+                    title:      titleVal,
+                    parent_id:  parentUUID,
                     start_date: row.start_date || null,
-                    end_date: row.end_date || null,
-                    duration: duration,
+                    end_date:   row.end_date   || null,
+                    duration:   duration,
                     sort_order: gridRows.indexOf(row) + 1,
-                    type: 'task',
-                    progress: (row.progress === '' || row.progress === undefined || row.progress === null) ? null : row.progress
+                    type:       'task',
+                    progress:   (row.progress === '' || row.progress === undefined || row.progress === null) ? 0 : Number(row.progress)
                 };
 
-                // Fallback payload in case task_id/parent_id columns don't exist in this database yet
-                const fallbackPayload = { ...fullPayload };
-                delete fallbackPayload.task_id;
-                delete fallbackPayload.parent_id;
+                const withLabel = { ...payload, task_label: row.task_label || null };
 
-                async function attemptSave(payload, isFallback) {
+                async function trySave(p) {
                     if (row.isNew) {
-                        const { data, error } = await supabaseClient.from('tasks').insert([payload]).select();
+                        const { data, error } = await supabaseClient.from('tasks').insert([p]).select();
                         if (error) {
-                            const missingCol = /could not find the '(task_id|parent_id)' column/i.test(error.message);
-                            if (missingCol && !isFallback) {
-                                missingColumnsWarned = true;
-                                return attemptSave(fallbackPayload, true);
+                            if (/task_label/i.test(error.message)) return trySave(payload);
+                            if (/not-null/i.test(error.message)) {
+                                const col = (error.message.match(/column "(\w+)"/) || [])[1];
+                                if (col) return trySave({ ...p, [col]: col === 'type' ? 'task' : 0 });
                             }
-                            throw new Error(`Insert failed for "${titleValue}": ${error.message}`);
+                            throw new Error(`Save failed for "${titleVal}": ${error.message}`);
                         }
-                        row.dbId = data[0].id;
-                        row.isNew = false;
+                        row.dbId = data[0].id; row.isNew = false;
                     } else {
-                        const { error } = await supabaseClient.from('tasks').update(payload).eq('id', row.dbId);
+                        const { error } = await supabaseClient.from('tasks').update(p).eq('id', row.dbId);
                         if (error) {
-                            const missingCol = /could not find the '(task_id|parent_id)' column/i.test(error.message);
-                            if (missingCol && !isFallback) {
-                                missingColumnsWarned = true;
-                                return attemptSave(fallbackPayload, true);
-                            }
-                            throw new Error(`Update failed for "${titleValue}": ${error.message}`);
+                            if (/task_label/i.test(error.message)) return trySave(payload);
+                            throw new Error(`Update failed for "${titleVal}": ${error.message}`);
                         }
                     }
                 }
 
-                await attemptSave(fullPayload, false);
+                await trySave(withLabel);
                 row.isDirty = false;
+                saved++;
             }
 
-            // PASS 2: refresh the dependency dropdowns now that tasks have real dbIds
-            renderDependencyGrid();
-
-            statusEl.className = missingColumnsWarned ? 'save-status err' : 'save-status ok';
-            statusEl.innerText = missingColumnsWarned
-                ? `Saved ${rowsToProcess.length} task(s), but your "tasks" table is missing the task_id/parent_id columns — those values weren't saved. Run the ALTER TABLE commands in Supabase, then re-save to capture them.`
-                : `Saved ${rowsToProcess.length} task(s) successfully.`;
+            statusEl.className = warnings.length ? 'save-status err' : 'save-status ok';
+            statusEl.innerText = `Saved ${saved} task(s).` + (warnings.length ? ' ⚠ ' + warnings.join(' ') : '');
             renderGrid();
             await refreshDataContainers();
-
         } catch (err) {
             statusEl.className = 'save-status err';
             statusEl.innerText = err.message;
         }
     }
 
-    // ---------- LOAD / REFRESH ----------
+    async function saveAllDependencies() {
+        if (!supabaseClient) return alert("Connect to Supabase first.");
+        if (!activeProjectId) return alert("Select or create a project first.");
+        const statusEl = document.getElementById('depSaveStatus');
+        statusEl.className = 'save-status pending'; statusEl.innerText = 'Saving…';
+        const toSave = depRows.filter(r => r.source_task_id && r.target_task_id);
+        if (toSave.length === 0) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing to save.'; return; }
+        try {
+            for (const row of toSave) {
+                if (row.source_task_id === row.target_task_id) throw new Error('A task cannot depend on itself.');
+                const payload = { source_task_id: row.source_task_id, target_task_id: row.target_task_id, type: row.type || 'FS', lag: row.lag || 0 };
+                if (row.isNew) {
+                    const { data, error } = await supabaseClient.from('task_dependencies').insert([payload]).select();
+                    if (error) throw new Error('Could not save dependency: ' + error.message);
+                    row.dbId = data[0].id; row.isNew = false;
+                } else {
+                    const { error } = await supabaseClient.from('task_dependencies').update(payload).eq('id', row.dbId);
+                    if (error) throw new Error('Could not update dependency: ' + error.message);
+                }
+                row.isDirty = false;
+            }
+            statusEl.className = 'save-status ok';
+            statusEl.innerText = `Saved ${toSave.length} dependency link(s).`;
+            await refreshDataContainers();
+        } catch (err) {
+            statusEl.className = 'save-status err'; statusEl.innerText = err.message;
+        }
+    }
 
     async function refreshDataContainers() {
         if (!supabaseClient || !activeProjectId) return;
-
         const { data: tasks, error } = await supabaseClient
-            .from('tasks')
-            .select('*')
-            .eq('project_id', activeProjectId)
-            .order('sort_order', { ascending: true });
-
-        if (error) {
-            alert('Could not load tasks: ' + error.message);
-            return;
-        }
-
-        // Only fetch dependencies that involve this project's tasks
+            .from('tasks').select('*').eq('project_id', activeProjectId).order('sort_order', { ascending: true });
+        if (error) return alert('Could not load tasks: ' + error.message);
         const taskIds = (tasks || []).map(t => t.id);
         let dependencies = [];
         if (taskIds.length > 0) {
-            const { data: deps } = await supabaseClient
-                .from('task_dependencies')
-                .select('*')
-                .in('target_task_id', taskIds);
+            const { data: deps } = await supabaseClient.from('task_dependencies').select('*').in('target_task_id', taskIds);
             dependencies = deps || [];
         }
-
-        // Rebuild gridRows from DB state
-        gridRows = (tasks || []).map(t => newRowObject(t));
-        if (gridRows.length === 0) addBlankRow(3); // give the user a few rows to start typing into
+        const uuidToLabel = {};
+        (tasks || []).forEach(t => { uuidToLabel[t.id] = t.task_label || ''; });
+        gridRows = (tasks || []).map(t => {
+            const row = newRowObject(t);
+            row.parent_label = t.parent_id ? (uuidToLabel[t.parent_id] || '') : '';
+            return row;
+        });
+        if (gridRows.length === 0) addBlankRow(3);
         else renderGrid();
-
-        // Rebuild the dependency matrix from DB state
         depRows = dependencies.map(d => newDepRowObject(d));
         renderDependencyGrid();
-
-        document.getElementById('saveStatus').innerText = '';
+        document.getElementById('saveStatus').innerText    = '';
         document.getElementById('depSaveStatus').innerText = '';
         renderGanttChart();
     }
@@ -1055,98 +690,66 @@ Task - 101&#9;Task - 103&#9;FS&#9;0"></textarea>
     function renderGanttChart() {
         const container = document.getElementById('ganttContainer');
         const missingEl = document.getElementById('ganttMissingDates');
-
-        const tasksWithDates = gridRows.filter(r => r.dbId && r.start_date && r.end_date && r.title && r.title.trim());
-        const tasksMissingDates = gridRows.filter(r => r.dbId && r.title && r.title.trim() && (!r.start_date || !r.end_date));
-
-        if (tasksWithDates.length === 0) {
-            container.innerHTML = '<p style="color:var(--secondary); padding: 20px; text-align:center;">No saved tasks have both a Start Date and End Date yet. Fill in dates in Step 2 and save, then regenerate.</p>';
-            missingEl.innerHTML = '';
-            return;
+        const withDates    = gridRows.filter(r => r.dbId && r.start_date && r.end_date && r.title);
+        const withoutDates = gridRows.filter(r => r.dbId && r.title && (!r.start_date || !r.end_date));
+        if (withDates.length === 0) {
+            container.innerHTML = '<p style="color:var(--secondary);padding:20px;text-align:center;">No tasks with both Start and End Date yet.</p>';
+            missingEl.innerHTML = ''; return;
         }
-
-        // Determine overall date range
-        const starts = tasksWithDates.map(t => new Date(t.start_date).getTime());
-        const ends = tasksWithDates.map(t => new Date(t.end_date).getTime());
-        const minDate = new Date(Math.min(...starts));
-        const maxDate = new Date(Math.max(...ends));
-        const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
-
-        const pxPerDay = totalDays > 90 ? 6 : (totalDays > 30 ? 12 : 24);
-        const chartWidth = Math.max(600, totalDays * pxPerDay);
-        const rowHeight = 32;
-        const labelWidth = 220;
-        const chartHeight = tasksWithDates.length * rowHeight + 40;
-
-        function dayOffset(dateStr) {
-            return Math.round((new Date(dateStr) - minDate) / (1000 * 60 * 60 * 24));
-        }
-
-        // Build month/week gridlines along the top
-        let gridlinesHtml = '';
-        for (let d = 0; d <= totalDays; d += (totalDays > 90 ? 30 : 7)) {
+        const starts    = withDates.map(t => new Date(t.start_date).getTime());
+        const ends      = withDates.map(t => new Date(t.end_date).getTime());
+        const minDate   = new Date(Math.min(...starts));
+        const maxDate   = new Date(Math.max(...ends));
+        const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / 86400000));
+        const pxPerDay  = totalDays > 120 ? 4 : totalDays > 60 ? 7 : totalDays > 30 ? 12 : 20;
+        const labelWidth = 240, rowHeight = 34, headerH = 30;
+        const chartWidth  = Math.max(700, labelWidth + totalDays * pxPerDay + 20);
+        const chartHeight = headerH + withDates.length * rowHeight + 10;
+        function dayX(ds) { return labelWidth + Math.round((new Date(ds) - minDate) / 86400000) * pxPerDay; }
+        let header = '';
+        const interval = totalDays > 120 ? 30 : totalDays > 30 ? 14 : 7;
+        for (let d = 0; d <= totalDays; d += interval) {
             const x = labelWidth + d * pxPerDay;
-            const labelDate = new Date(minDate.getTime() + d * 24 * 60 * 60 * 1000);
-            gridlinesHtml += `<div style="position:absolute; left:${x}px; top:0; bottom:0; width:1px; background:var(--border);"></div>`;
-            gridlinesHtml += `<div style="position:absolute; left:${x + 4}px; top:0; font-size:11px; color:var(--secondary);">${labelDate.toLocaleDateString(undefined,{month:'short',day:'numeric'})}</div>`;
+            const lbl = new Date(minDate.getTime() + d * 86400000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            header += `<line x1="${x}" y1="0" x2="${x}" y2="${chartHeight}" stroke="#E2E8F0" stroke-width="1"/>`;
+            header += `<text x="${x+3}" y="18" font-size="10" fill="#718096">${lbl}</text>`;
         }
-
-        // Build task bars
-        let barsHtml = '';
-        tasksWithDates.forEach((task, idx) => {
-            const y = 24 + idx * rowHeight;
-            const x = labelWidth + dayOffset(task.start_date) * pxPerDay;
-            const w = Math.max(4, (dayOffset(task.end_date) - dayOffset(task.start_date)) * pxPerDay);
-            const progress = task.progress !== '' && task.progress !== null && task.progress !== undefined ? task.progress : 0;
-            const barColor = progress >= 100 ? 'var(--success)' : 'var(--accent)';
-
-            barsHtml += `
-                <div style="position:absolute; left:0; top:${y}px; width:${labelWidth - 10}px; font-size:12px; font-weight:600; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeAttr(task.title)}">
-                    ${task.task_id ? escapeAttr(task.task_id) + ' — ' : ''}${escapeAttr(task.title)}
-                </div>
-                <div style="position:absolute; left:${x}px; top:${y}px; width:${w}px; height:20px; background:${barColor}; border-radius:4px; opacity:0.85;" title="${escapeAttr(task.title)}: ${task.start_date} to ${task.end_date} (${progress}%)">
-                    <div style="height:100%; width:${Math.min(100, progress)}%; background:rgba(0,0,0,0.25); border-radius:4px;"></div>
-                </div>
-            `;
+        let bars = '', labels = '';
+        withDates.forEach((task, idx) => {
+            const y  = headerH + idx * rowHeight;
+            const x1 = dayX(task.start_date);
+            const x2 = Math.max(x1 + 4, dayX(task.end_date));
+            const w  = x2 - x1;
+            const pct = (task.progress !== '' && task.progress !== null) ? Math.min(100, Number(task.progress)) : 0;
+            const barColor  = pct >= 100 ? '#38A169' : '#3182CE';
+            const fillWidth = Math.round(w * pct / 100);
+            const lbl = (task.task_label ? task.task_label + ' — ' : '') + task.title;
+            if (idx % 2 === 0) bars += `<rect x="0" y="${y}" width="${chartWidth}" height="${rowHeight}" fill="#F7FAFC" opacity="0.5"/>`;
+            bars += `<rect x="${x1}" y="${y+5}" width="${w}" height="${rowHeight-10}" rx="3" fill="${barColor}" opacity="0.85"/>`;
+            if (fillWidth > 0) bars += `<rect x="${x1}" y="${y+5}" width="${fillWidth}" height="${rowHeight-10}" rx="3" fill="rgba(0,0,0,0.25)"/>`;
+            if (pct > 0) bars += `<text x="${x1+w/2}" y="${y+rowHeight/2+5}" font-size="10" fill="white" text-anchor="middle">${pct}%</text>`;
+            labels += `<text x="${labelWidth-6}" y="${y+rowHeight/2+4}" font-size="11" fill="#1B365D" text-anchor="end" font-weight="600"><title>${escapeAttr(lbl)}</title>${escapeAttr(lbl.length > 28 ? lbl.slice(0,27)+'…' : lbl)}</text>`;
         });
-
-        // Build dependency arrows (simple lines connecting end-of-source to start-of-target)
-        let arrowsHtml = '';
+        let arrows = '';
         depRows.filter(d => d.source_task_id && d.target_task_id).forEach(dep => {
-            const sourceIdx = tasksWithDates.findIndex(t => t.dbId === dep.source_task_id);
-            const targetIdx = tasksWithDates.findIndex(t => t.dbId === dep.target_task_id);
-            if (sourceIdx === -1 || targetIdx === -1) return;
-
-            const sourceTask = tasksWithDates[sourceIdx];
-            const targetTask = tasksWithDates[targetIdx];
-
-            const x1 = labelWidth + dayOffset(sourceTask.end_date) * pxPerDay;
-            const y1 = 24 + sourceIdx * rowHeight + 10;
-            const x2 = labelWidth + dayOffset(targetTask.start_date) * pxPerDay;
-            const y2 = 24 + targetIdx * rowHeight + 10;
-
-            arrowsHtml += `<svg style="position:absolute; left:0; top:0; pointer-events:none;" width="${chartWidth}" height="${chartHeight}">
-                <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--secondary)" stroke-width="1.5" stroke-dasharray="3,2" />
-                <circle cx="${x2}" cy="${y2}" r="3" fill="var(--secondary)" />
-            </svg>`;
+            const si = withDates.findIndex(t => t.dbId === dep.source_task_id);
+            const ti = withDates.findIndex(t => t.dbId === dep.target_task_id);
+            if (si === -1 || ti === -1) return;
+            const x1 = dayX(withDates[si].end_date), y1 = headerH + si * rowHeight + rowHeight / 2;
+            const x2 = dayX(withDates[ti].start_date), y2 = headerH + ti * rowHeight + rowHeight / 2;
+            arrows += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#718096" stroke-width="1.5" stroke-dasharray="4,3"/>
+                       <polygon points="${x2},${y2} ${x2-6},${y2-4} ${x2-6},${y2+4}" fill="#718096"/>`;
         });
-
-        container.innerHTML = `<div style="position:relative; width:${chartWidth}px; height:${chartHeight}px; font-family: inherit;">
-            ${gridlinesHtml}
-            ${barsHtml}
-            ${arrowsHtml}
-        </div>`;
-
-        if (tasksMissingDates.length > 0) {
-            missingEl.innerHTML = `<strong>${tasksMissingDates.length} task(s) excluded</strong> — missing a Start or End Date: ` +
-                tasksMissingDates.map(t => escapeAttr(t.title)).join(', ');
-        } else {
-            missingEl.innerHTML = '';
-        }
+        container.innerHTML = `<svg width="${chartWidth}" height="${chartHeight}" style="font-family:'Segoe UI',sans-serif;display:block;">
+            ${header}
+            <line x1="${labelWidth}" y1="0" x2="${labelWidth}" y2="${chartHeight}" stroke="#CBD5E0" stroke-width="1.5"/>
+            ${bars}${labels}${arrows}
+        </svg>`;
+        missingEl.innerHTML = withoutDates.length > 0
+            ? `<strong>${withoutDates.length} task(s) not shown</strong> (missing dates): ` + withoutDates.map(t => escapeAttr(t.task_label || t.title)).join(', ')
+            : '';
     }
 
-
-    // Start with a few empty rows visible even before a project/connection is set, so the UI isn't blank
     addBlankRow(3);
 </script>
 </body>
