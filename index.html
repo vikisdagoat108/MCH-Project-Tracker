@@ -3,868 +3,1028 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gantt Project Kickstart Portal</title>
+    <title>Gantt Project Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --primary: #1B365D; --secondary: #4A5568; --background: #F7FAFC;
             --card-bg: #FFFFFF; --border: #E2E8F0; --success: #38A169;
-            --accent: #3182CE; --danger: #E53E3E;
+            --accent: #3182CE; --danger: #E53E3E; --supervisor: #805AD5;
         }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--background); color: #2D3748; margin: 0; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid var(--border); padding-bottom: 20px; }
-        h1 { color: var(--primary); margin-bottom: 5px; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--background); color: #2D3748; margin: 0; padding: 0; }
+
+        /* ── LOGIN ─────────────────────────────────────────────── */
+        #loginScreen {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #1B365D 0%, #2B6CB0 100%);
+        }
+        .login-card {
+            background: white; border-radius: 12px; padding: 40px; width: 380px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .login-card h1 { color: var(--primary); margin: 0 0 6px; font-size: 22px; }
+        .login-card p  { color: var(--secondary); margin: 0 0 28px; font-size: 14px; }
+        .login-field { margin-bottom: 16px; }
+        .login-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--secondary); }
+        .login-field input { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
+        .login-field input:focus { outline: 2px solid var(--accent); }
+        .login-btn { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        .login-btn:hover { background: #2B6CB0; }
+        .login-btn.secondary { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); margin-top: 6px; }
+        .login-btn.secondary:hover { background: #EBF8FF; }
+        .login-err { color: var(--danger); font-size: 13px; margin-top: 10px; min-height: 18px; }
+        .login-ok  { color: var(--success); font-size: 13px; margin-top: 10px; min-height: 18px; }
+        .login-divider { text-align:center; color: var(--secondary); font-size: 12px; margin: 14px 0 0; }
+        .login-toggle { color: var(--accent); cursor: pointer; text-decoration: underline; font-size: 13px; }
+
+        /* ── TOP BAR ───────────────────────────────────────────── */
+        #topBar {
+            background: var(--primary); color: white; padding: 12px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        #topBar h1 { margin: 0; font-size: 18px; }
+        .topbar-right { display: flex; align-items: center; gap: 16px; }
+        .role-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .role-badge.admin      { background: #C6F6D5; color: #276749; }
+        .role-badge.supervisor { background: #E9D8FD; color: #553C9A; }
+        .role-badge.user       { background: #BEE3F8; color: #2B6CB0; }
+        .logout-btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .logout-btn:hover { background: rgba(255,255,255,0.25); }
+        .settings-btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+
+        /* ── LAYOUT ────────────────────────────────────────────── */
+        .container { max-width: 1500px; margin: 0 auto; padding: 24px; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 24px; }
         h2 { color: var(--primary); margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .config-box { background: #EBF8FF; border: 1px solid #BEE3F8; padding: 15px; border-radius: 8px; margin-bottom: 30px; display: flex; gap: 15px; align-items: flex-end; }
-        .config-box div { flex: 1; }
-        .config-box label { font-weight: bold; font-size: 12px; color: var(--primary); display: block; margin-bottom: 5px; }
-        .config-box input { width: 100%; padding: 8px; border: 1px solid #CBD5E0; border-radius: 4px; box-sizing: border-box; }
-        .config-btn { background: var(--primary); color: white; border: none; padding: 9px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; white-space: nowrap; }
-        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 30px; }
-        .form-group { margin-bottom: 15px; }
+        .form-group { margin-bottom: 14px; }
         label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
-        input, textarea, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; }
         textarea { resize: vertical; height: 80px; }
-        .btn { color: white; border: none; padding: 12px 20px; font-size: 15px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
-        .btn-primary { background: var(--accent); } .btn-primary:hover { background: #2B6CB0; }
-        .btn-success { background: var(--success); } .btn-success:hover { background: #2F855A; }
-        .btn-danger  { background: var(--danger);  } .btn-danger:hover  { background: #C53030; }
+        .btn { color: white; border: none; padding: 11px 18px; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
+        .btn-primary   { background: var(--accent); }   .btn-primary:hover   { background: #2B6CB0; }
+        .btn-success   { background: var(--success); }  .btn-success:hover   { background: #2F855A; }
         .btn-secondary { background: var(--secondary); } .btn-secondary:hover { background: #2D3748; }
-        .btn-row { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; align-items: center; }
-        .status-banner { background: #EDF2F7; padding: 12px; border-radius: 6px; font-weight: bold; margin-bottom: 15px; border-left: 5px solid var(--accent); }
-        .info-box { background: #FFFBEB; border: 1px solid #F6E05E; border-radius: 6px; padding: 12px 15px; font-size: 13px; margin-bottom: 20px; color: #744210; line-height: 1.8; }
-        .info-box code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 12px; }
+        .btn-danger    { background: var(--danger); }   .btn-danger:hover    { background: #C53030; }
+        .btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+        .status-banner { background: #EDF2F7; padding: 12px; border-radius: 6px; font-weight: bold; border-left: 5px solid var(--accent); margin-bottom: 14px; }
+        .save-status { font-size: 13px; font-weight: 600; }
+        .save-status.ok { color: var(--success); } .save-status.err { color: var(--danger); } .save-status.pending { color: var(--secondary); }
+
+        /* ── TASK GRID ─────────────────────────────────────────── */
         .grid-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
         table.task-grid { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 13px; }
         table.task-grid th { background: var(--primary); color: white; text-align: left; padding: 10px 8px; position: sticky; top: 0; font-weight: 600; white-space: nowrap; }
         table.task-grid td { border: 1px solid var(--border); padding: 0; background: white; }
-        table.task-grid tr.new-row td { background: #F0FFF4; }
+        table.task-grid tr.new-row td   { background: #F0FFF4; }
         table.task-grid tr.dirty-row td { background: #FFFFF0; }
-        table.task-grid td input, table.task-grid td select { width: 100%; border: none; padding: 7px 8px; font-size: 13px; box-sizing: border-box; background: transparent; }
+        table.task-grid td input, table.task-grid td select { width: 100%; border: none; padding: 7px 8px; font-size: 13px; background: transparent; }
         table.task-grid td input:focus, table.task-grid td select:focus { outline: 2px solid var(--accent); background: #EBF8FF; }
         table.task-grid .row-num { text-align: center; color: var(--secondary); font-weight: bold; background: #F7FAFC !important; width: 30px; padding: 8px 4px; }
         table.task-grid .row-actions { text-align: center; width: 36px; background: #F7FAFC !important; }
-        table.task-grid .row-actions button { background: none; border: none; cursor: pointer; font-size: 15px; color: var(--danger); padding: 4px; }
-        .grid-legend { display: flex; gap: 20px; font-size: 12px; color: var(--secondary); margin-top: 10px; }
+        table.task-grid .row-actions button { background: none; border: none; cursor: pointer; font-size: 15px; color: var(--danger); }
+        .grid-legend { display: flex; gap: 20px; font-size: 12px; color: var(--secondary); margin-top: 8px; }
         .legend-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
-        .save-status { font-size: 13px; font-weight: 600; }
-        .save-status.ok { color: var(--success); } .save-status.err { color: var(--danger); } .save-status.pending { color: var(--secondary); }
+
+        /* ── GANTT ─────────────────────────────────────────────── */
+        .gantt-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; background: white; padding: 10px; }
+        .gantt-missing { margin-top: 8px; font-size: 13px; color: var(--secondary); }
+
+        /* ── SUPERVISOR DATE PANEL ─────────────────────────────── */
+        .sup-gantt-row { display: flex; align-items: center; gap: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+        .sup-gantt-label { width: 200px; font-size: 12px; font-weight: 600; color: var(--primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+        .sup-gantt-bar-wrap { flex: 1; }
+        .sup-gantt-dates { display: flex; gap: 8px; flex-shrink: 0; }
+        .sup-gantt-dates input { width: 130px; padding: 5px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; }
+        .sup-gantt-dates input:focus { outline: 2px solid var(--supervisor); }
+        .sup-gantt-header { display: flex; gap: 12px; padding: 0 0 6px; border-bottom: 2px solid var(--border); font-size: 11px; font-weight: 700; color: var(--secondary); text-transform: uppercase; }
+
+        /* config box hidden by default */
+        #configBox { display: none; }
     </style>
 </head>
 <body>
-<div class="container">
-    <header>
-        <h1>Project Gantt Portal</h1>
-        <p>Import tasks from your CSV, manage dependencies, and generate a Gantt chart — all synced to Supabase.</p>
-    </header>
 
-    <div style="text-align:right; margin-bottom: 10px;">
-        <button class="config-btn" onclick="document.getElementById('configBox').style.display = document.getElementById('configBox').style.display === 'none' ? 'flex' : 'none'" style="font-size:12px; padding: 6px 14px; background: var(--secondary);">⚙ Connection Settings</button>
-    </div>
-    <div class="config-box" id="configBox" style="display:none;">
-        <div><label>Supabase URL</label><input type="text" id="supUrl" value="https://lufyzkbnbxsmosmrwkdv.supabase.co"></div>
-        <div><label>Supabase Anon Key</label><input type="password" id="supKey" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Znl6a2JuYnhzbW9zbXJ3a2R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NjIyNjEsImV4cCI6MjA5ODIzODI2MX0.BhxtYwIGcoLYAepll4nqxUgVmFt7UFACgDFioZ8xjjs"></div>
-        <button class="config-btn" onclick="initializeSupabase()">Establish Connection</button>
-    </div>
+<!-- ═══════════════════════════ LOGIN ═══════════════════════════ -->
+<div id="loginScreen">
+    <div class="login-card">
 
-    <!-- STEP 0 -->
-    <div class="card">
-        <h2>Step 0: Resume an Existing Project</h2>
-        <div class="form-group">
-            <label>Existing Projects</label>
-            <select id="existingProjectSelect" onchange="selectExistingProject(this.value)">
-                <option value="">-- Connect first to load projects --</option>
-            </select>
+        <!-- SIGN IN -->
+        <div id="signinPanel">
+            <h1>🏗 Gantt Project Portal</h1>
+            <p>Sign in to continue</p>
+            <div class="login-field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+            <div class="login-field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()"></div>
+            <button class="login-btn" onclick="doLogin()">Sign In</button>
+            <div class="login-err" id="loginErr"></div>
+            <div class="login-divider">Don't have an account? <span class="login-toggle" onclick="showSignup()">Create one</span></div>
         </div>
-    </div>
 
-    <!-- STEP 1 -->
-    <div class="card">
-        <h2>Step 1: Create a New Project</h2>
-        <form onsubmit="handleProjectSubmit(event)">
-            <div class="form-group"><label>Project Name</label><input type="text" id="projName" required placeholder="e.g., 3455 Pikes Peak 1"></div>
-            <div class="form-group"><label>Scope Description</label><textarea id="projDesc" placeholder="High-level objectives..."></textarea></div>
-            <button type="submit" class="btn btn-primary">Create Project</button>
-        </form>
-        <div style="margin-top:20px;">
-            <label>Active Project:</label>
-            <div id="activeProjectBanner" class="status-banner" style="color:var(--secondary);">No project selected yet.</div>
+        <!-- CREATE ACCOUNT -->
+        <div id="signupPanel" style="display:none;">
+            <h1>🏗 Create Account</h1>
+            <p>Sign up for access — an admin will assign your role.</p>
+            <div class="login-field"><label>Email</label><input type="email" id="signupEmail" placeholder="you@example.com"></div>
+            <div class="login-field"><label>Password</label><input type="password" id="signupPassword" placeholder="At least 6 characters"></div>
+            <div class="login-field"><label>Confirm Password</label><input type="password" id="signupConfirm" placeholder="Re-enter password" onkeydown="if(event.key==='Enter') doSignup()"></div>
+            <button class="login-btn" onclick="doSignup()">Create Account</button>
+            <button class="login-btn secondary" onclick="showSignin()">← Back to Sign In</button>
+            <div class="login-err" id="signupErr"></div>
+            <div class="login-ok"  id="signupOk"></div>
         </div>
-    </div>
 
-    <!-- IMPORT TASKS -->
-    <div class="card">
-        <h2>Import Tasks from CSV / Excel</h2>
-        <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
-            Reads your exact CSV format: <strong>task_id, Project_id, Parent_id, Title, start_date, end_date, Duration, progress, Type, Sort_Order</strong><br>
-            Dates in M/D/YYYY format and progress with % sign are handled automatically. Upload the file or paste tab-separated rows.
-        </p>
-        <div class="form-group">
-            <label>Upload .csv / .xlsx / .xls file</label>
-            <input type="file" id="importFileInput" accept=".csv,.xlsx,.xls" onchange="handleFileImport(event)">
-        </div>
-        <div class="form-group">
-            <label>Or paste rows copied from Excel (tab-separated)</label>
-            <textarea id="pasteImportArea" style="height:80px;font-family:monospace;" placeholder="Task - 100&#9;3455&#9;&#9;Site Work&#9;&#9;&#9;&#9;0%&#9;Milestone&#9;"></textarea>
-        </div>
-        <div class="btn-row" style="margin-top:0;">
-            <button type="button" class="btn btn-secondary" onclick="handlePasteImport()">Import Pasted Rows</button>
-            <span class="save-status" id="importStatus"></span>
-        </div>
-    </div>
-
-    <!-- STEP 2: TASK GRID -->
-    <div class="card">
-        <h2>Step 2: Task Grid</h2>
-        <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
-            Imported rows appear here. Edit any cell before saving. Green = new unsaved. Yellow = edited existing.
-        </p>
-        <div class="grid-wrapper">
-            <table class="task-grid">
-                <thead><tr>
-                    <th class="row-num">#</th>
-                    <th style="min-width:120px;">Task ID</th>
-                    <th style="min-width:200px;">Title</th>
-                    <th style="min-width:100px;">Type</th>
-                    <th style="min-width:80px;">Duration (wk)</th>
-                    <th style="min-width:120px;">Parent ID</th>
-                    <th style="min-width:120px;">Start Date</th>
-                    <th style="min-width:120px;">End Date</th>
-                    <th style="min-width:75px;">Progress %</th>
-                    <th class="row-actions">Del</th>
-                </tr></thead>
-                <tbody id="gridBody"></tbody>
-            </table>
-        </div>
-        <div class="grid-legend">
-            <span><span class="legend-swatch" style="background:#F0FFF4;border:1px solid #C6F6D5;"></span>New (unsaved)</span>
-            <span><span class="legend-swatch" style="background:#FFFFF0;border:1px solid #FEFCBF;"></span>Edited (unsaved)</span>
-        </div>
-        <div class="btn-row">
-            <button type="button" class="btn btn-secondary" onclick="addBlankRow(1)">+ Add Row</button>
-            <button type="button" class="btn btn-secondary" onclick="addBlankRow(5)">+ Add 5 Rows</button>
-            <button type="button" class="btn btn-secondary" onclick="addBlankRow(10)">+ Add 10 Rows</button>
-            <button type="button" class="btn btn-success" onclick="saveAllRows()">Save All Changes</button>
-            <button type="button" class="btn btn-secondary" onclick="refreshDataContainers()">Reload from DB</button>
-            <span class="save-status" id="saveStatus"></span>
-        </div>
-    </div>
-
-    <!-- IMPORT DEPENDENCIES -->
-    <div class="card">
-        <h2>Import Dependencies from CSV / Excel</h2>
-        <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
-            Expected columns: <strong>Source Task ID, Target Task ID, Flag (FS/SS/FF/SF), Days</strong>. Tasks must be saved first.
-        </p>
-        <div class="form-group">
-            <label>Upload .csv / .xlsx / .xls file</label>
-            <input type="file" id="depImportFileInput" accept=".csv,.xlsx,.xls" onchange="handleDepFileImport(event)">
-        </div>
-        <div class="form-group">
-            <label>Or paste rows copied from Excel</label>
-            <textarea id="depPasteImportArea" style="height:80px;font-family:monospace;" placeholder="Task - 100&#9;Task - 102&#9;FS&#9;0"></textarea>
-        </div>
-        <div class="btn-row" style="margin-top:0;">
-            <button type="button" class="btn btn-secondary" onclick="handleDepPasteImport()">Import Pasted Rows</button>
-            <span class="save-status" id="depImportStatus"></span>
-        </div>
-    </div>
-
-    <!-- STEP 3: DEPENDENCY MATRIX -->
-    <div class="card">
-        <h2>Step 3: Dependency Matrix</h2>
-        <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
-            FS = Finish-to-Start &nbsp;|&nbsp; SS = Start-to-Start &nbsp;|&nbsp; FF = Finish-to-Finish &nbsp;|&nbsp; SF = Start-to-Finish
-        </p>
-        <div class="grid-wrapper">
-            <table class="task-grid">
-                <thead><tr>
-                    <th class="row-num">#</th>
-                    <th style="min-width:70px;">Dep</th>
-                    <th style="min-width:220px;">Source (Predecessor)</th>
-                    <th style="min-width:220px;">Target (Successor)</th>
-                    <th style="min-width:90px;">Flag</th>
-                    <th style="min-width:80px;">Days Lag</th>
-                    <th class="row-actions">Del</th>
-                </tr></thead>
-                <tbody id="depGridBody"></tbody>
-            </table>
-        </div>
-        <div class="btn-row">
-            <button type="button" class="btn btn-secondary" onclick="addDependencyRow()">+ Add Dependency</button>
-            <button type="button" class="btn btn-success" onclick="saveAllDependencies()">Save All Dependencies</button>
-            <span class="save-status" id="depSaveStatus"></span>
-        </div>
-    </div>
-
-    <!-- STEP 4: GANTT -->
-    <div class="card">
-        <h2>Step 4: Gantt Chart</h2>
-        <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
-            Shows all tasks with both Start and End dates. Progress fills bars. Dashed lines show dependencies.
-        </p>
-        <div class="btn-row" style="margin-top:0;margin-bottom:15px;">
-            <button type="button" class="btn btn-secondary" onclick="renderGanttChart()">Generate / Refresh Chart</button>
-        </div>
-        <div id="ganttContainer" style="overflow-x:auto;border:1px solid var(--border);border-radius:6px;padding:10px;background:white;min-height:80px;">
-            <p style="color:var(--secondary);padding:20px;text-align:center;">Click Generate once your tasks have dates.</p>
-        </div>
-        <div id="ganttMissingDates" style="margin-top:8px;font-size:13px;color:var(--secondary);"></div>
     </div>
 </div>
 
+<!-- ═══════════════════════════ MAIN APP ════════════════════════ -->
+<div id="mainApp" style="display:none;">
+
+    <div id="topBar">
+        <h1>🏗 Gantt Project Portal</h1>
+        <div class="topbar-right">
+            <span class="role-badge" id="roleBadge"></span>
+            <button class="settings-btn" onclick="toggleConfig()">⚙ Connection</button>
+            <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Hidden config -->
+        <div id="configBox" class="card" style="margin-bottom:16px;">
+            <div style="display:flex; gap:15px; align-items:flex-end;">
+                <div style="flex:1;"><label>Supabase URL</label><input type="text" id="supUrl" value="https://lufyzkbnbxsmosmrwkdv.supabase.co"></div>
+                <div style="flex:2;"><label>Supabase Anon Key</label><input type="password" id="supKey" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Znl6a2JuYnhzbW9zbXJ3a2R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NjIyNjEsImV4cCI6MjA5ODIzODI2MX0.BhxtYwIGcoLYAepll4nqxUgVmFt7UFACgDFioZ8xjjs"></div>
+            </div>
+        </div>
+
+        <!-- PROJECT SELECT (all roles) -->
+        <div class="card">
+            <h2>Select Project</h2>
+            <div class="form-group">
+                <label>Project</label>
+                <select id="existingProjectSelect" onchange="selectExistingProject(this.value)">
+                    <option value="">-- Select a project --</option>
+                </select>
+            </div>
+            <div id="activeProjectBanner" class="status-banner" style="color:var(--secondary);display:none;"></div>
+        </div>
+
+        <!-- ══════════ ADMIN VIEW ══════════ -->
+        <div id="adminView" style="display:none;">
+
+            <div class="card">
+                <h2>👥 Manage Users</h2>
+                <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">Change roles for any registered user. New accounts default to "User" until promoted here.</p>
+                <div id="userManagementList"><p style="color:var(--secondary);">Loading users…</p></div>
+                <div class="btn-row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" onclick="loadUserManagement()">Refresh</button>
+                    <span class="save-status" id="userMgmtStatus"></span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Create New Project</h2>
+                <form onsubmit="handleProjectSubmit(event)">
+                    <div class="form-group"><label>Project Name</label><input type="text" id="projName" placeholder="e.g., 3455 Pikes Peak 1"></div>
+                    <div class="form-group"><label>Scope Description</label><textarea id="projDesc" placeholder="High-level objectives..."></textarea></div>
+                    <button type="submit" class="btn btn-primary">Create Project</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Import Tasks from CSV / Excel</h2>
+                <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">Columns: <strong>task_id, Project_id, Parent_id, Title, start_date, end_date, Duration, progress, Type, Sort_Order</strong></p>
+                <div class="form-group"><label>Upload file</label><input type="file" id="importFileInput" accept=".csv,.xlsx,.xls" onchange="handleFileImport(event)"></div>
+                <div class="form-group"><label>Or paste (tab-separated)</label><textarea id="pasteImportArea" style="height:70px;font-family:monospace;" placeholder="Task - 100&#9;3455&#9;&#9;Site Work&#9;..."></textarea></div>
+                <div class="btn-row" style="margin-top:0;"><button class="btn btn-secondary" onclick="handlePasteImport()">Import Pasted Rows</button><span class="save-status" id="importStatus"></span></div>
+            </div>
+
+            <div class="card">
+                <h2>Task Grid</h2>
+                <div class="grid-wrapper">
+                    <table class="task-grid">
+                        <thead><tr>
+                            <th class="row-num">#</th>
+                            <th style="min-width:120px;">Task ID</th>
+                            <th style="min-width:200px;">Title</th>
+                            <th style="min-width:100px;">Type</th>
+                            <th style="min-width:80px;">Duration (wk)</th>
+                            <th style="min-width:120px;">Parent ID</th>
+                            <th style="min-width:120px;">Start Date</th>
+                            <th style="min-width:120px;">End Date</th>
+                            <th style="min-width:75px;">Progress %</th>
+                            <th class="row-actions">Del</th>
+                        </tr></thead>
+                        <tbody id="gridBody"></tbody>
+                    </table>
+                </div>
+                <div class="grid-legend">
+                    <span><span class="legend-swatch" style="background:#F0FFF4;border:1px solid #C6F6D5;"></span>New</span>
+                    <span><span class="legend-swatch" style="background:#FFFFF0;border:1px solid #FEFCBF;"></span>Edited</span>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="addBlankRow(1)">+ Add Row</button>
+                    <button class="btn btn-secondary" onclick="addBlankRow(5)">+ Add 5 Rows</button>
+                    <button class="btn btn-secondary" onclick="addBlankRow(10)">+ Add 10 Rows</button>
+                    <button class="btn btn-success" onclick="saveAllRows()">Save All Changes</button>
+                    <button class="btn btn-secondary" onclick="refreshDataContainers()">Reload from DB</button>
+                    <span class="save-status" id="saveStatus"></span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Import Dependencies from CSV / Excel</h2>
+                <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">Columns: <strong>ID, Source Task ID, Target Task ID, Flag, Lag, Dependency</strong></p>
+                <div class="form-group"><label>Upload file</label><input type="file" id="depImportFileInput" accept=".csv,.xlsx,.xls" onchange="handleDepFileImport(event)"></div>
+                <div class="form-group"><label>Or paste (tab-separated)</label><textarea id="depPasteImportArea" style="height:70px;font-family:monospace;"></textarea></div>
+                <div class="btn-row" style="margin-top:0;"><button class="btn btn-secondary" onclick="handleDepPasteImport()">Import Pasted Rows</button><span class="save-status" id="depImportStatus"></span></div>
+            </div>
+
+            <div class="card">
+                <h2>Dependency Matrix</h2>
+                <div class="grid-wrapper">
+                    <table class="task-grid">
+                        <thead><tr>
+                            <th class="row-num">#</th><th style="min-width:70px;">Dep</th>
+                            <th style="min-width:220px;">Source (Predecessor)</th>
+                            <th style="min-width:220px;">Target (Successor)</th>
+                            <th style="min-width:90px;">Flag</th><th style="min-width:80px;">Days Lag</th>
+                            <th class="row-actions">Del</th>
+                        </tr></thead>
+                        <tbody id="depGridBody"></tbody>
+                    </table>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="addDependencyRow()">+ Add Dependency</button>
+                    <button class="btn btn-success" onclick="saveAllDependencies()">Save All Dependencies</button>
+                    <span class="save-status" id="depSaveStatus"></span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Gantt Chart (Admin)</h2>
+                <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
+                    <button class="btn btn-secondary" onclick="renderGanttChart('ganttContainer')">Generate / Refresh Chart</button>
+                </div>
+                <div class="gantt-wrapper" id="ganttContainer"><p style="color:var(--secondary);padding:20px;text-align:center;">Click Generate once tasks have dates.</p></div>
+                <div class="gantt-missing" id="ganttMissingDates"></div>
+            </div>
+        </div>
+
+        <!-- ══════════ SUPERVISOR VIEW ══════════ -->
+        <div id="supervisorView" style="display:none;">
+            <div class="card">
+                <h2 style="color:var(--supervisor);">📅 Schedule Editor — Supervisor</h2>
+                <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">Edit Start and End dates for any task. Dependent tasks will automatically shift when you save a change.</p>
+                <div id="supGanttPanel" style="overflow-x:auto;"></div>
+                <div class="btn-row" style="margin-top:14px;">
+                    <button class="btn btn-secondary" onclick="loadSupervisorView()">Reload</button>
+                    <span class="save-status" id="supSaveStatus"></span>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Gantt Chart</h2>
+                <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
+                    <button class="btn btn-secondary" onclick="renderGanttChart('supGanttChart')">Generate / Refresh Chart</button>
+                </div>
+                <div class="gantt-wrapper" id="supGanttChart"><p style="color:var(--secondary);padding:20px;text-align:center;">Click Generate once tasks have dates.</p></div>
+                <div class="gantt-missing" id="supGanttMissing"></div>
+            </div>
+        </div>
+
+        <!-- ══════════ USER VIEW ══════════ -->
+        <div id="userView" style="display:none;">
+            <div class="card">
+                <h2>📊 Gantt Chart</h2>
+                <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
+                    <button class="btn btn-secondary" onclick="renderGanttChart('userGanttChart')">Generate / Refresh Chart</button>
+                </div>
+                <div class="gantt-wrapper" id="userGanttChart"><p style="color:var(--secondary);padding:20px;text-align:center;">Select a project above to view the chart.</p></div>
+                <div class="gantt-missing" id="userGanttMissing"></div>
+            </div>
+        </div>
+
+    </div><!-- /container -->
+</div><!-- /mainApp -->
+
 <script>
-    let supabaseClient = null;
-    let activeProjectId = null;
-    let gridRows = [];
-    let rowCounter = 0;
-    let depRows = [];
-    let depRowCounter = 0;
+// ── GLOBALS ─────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://lufyzkbnbxsmosmrwkdv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Znl6a2JuYnhzbW9zbXJ3a2R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NjIyNjEsImV4cCI6MjA5ODIzODI2MX0.BhxtYwIGcoLYAepll4nqxUgVmFt7UFACgDFioZ8xjjs';
 
-    // ── CONNECTION ──────────────────────────────────────────────────────────────
+let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null;
+let currentRole = null;
+let activeProjectId = null;
+let gridRows = [];
+let rowCounter = 0;
+let depRows = [];
+let depRowCounter = 0;
+let allDependencies = [];
 
-    function initializeSupabase() {
-        const url = document.getElementById('supUrl').value.trim();
-        const key = document.getElementById('supKey').value.trim();
-        if (!url || !key) return alert("Enter both Supabase URL and Anon Key.");
-        supabaseClient = supabase.createClient(url, key);
-        fetchExistingProjects();
+// ── AUTH ─────────────────────────────────────────────────────────
+
+async function doLogin() {
+    const email    = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errEl    = document.getElementById('loginErr');
+    errEl.innerText = '';
+    if (!email || !password) { errEl.innerText = 'Enter email and password.'; return; }
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) { errEl.innerText = error.message; return; }
+    currentUser = data.user;
+    await loadRoleAndStart();
+}
+
+function showSignup() {
+    document.getElementById('signinPanel').style.display = 'none';
+    document.getElementById('signupPanel').style.display = 'block';
+    document.getElementById('signupErr').innerText = '';
+    document.getElementById('signupOk').innerText  = '';
+}
+
+function showSignin() {
+    document.getElementById('signupPanel').style.display = 'none';
+    document.getElementById('signinPanel').style.display = 'block';
+    document.getElementById('loginErr').innerText = '';
+}
+
+async function doSignup() {
+    const email    = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirm  = document.getElementById('signupConfirm').value;
+    const errEl    = document.getElementById('signupErr');
+    const okEl     = document.getElementById('signupOk');
+    errEl.innerText = ''; okEl.innerText = '';
+
+    if (!email || !password) { errEl.innerText = 'Enter email and password.'; return; }
+    if (password.length < 6) { errEl.innerText = 'Password must be at least 6 characters.'; return; }
+    if (password !== confirm) { errEl.innerText = 'Passwords do not match.'; return; }
+
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) { errEl.innerText = error.message; return; }
+
+    // Insert a default 'user' role — admin can upgrade later
+    if (data.user) {
+        await supabaseClient.from('user_roles').insert([{ id: data.user.id, email, role: 'user' }]);
     }
 
-    async function fetchExistingProjects() {
-        if (!supabaseClient) return;
-        const { data, error } = await supabaseClient.from('projects').select('*').order('created_at', { ascending: false });
-        const sel = document.getElementById('existingProjectSelect');
-        if (error) { sel.innerHTML = `<option value="">-- Error: ${error.message} --</option>`; return; }
-        sel.innerHTML = '<option value="">-- Select a project --</option>';
-        (data || []).forEach(p => {
-            const o = document.createElement('option');
-            o.value = p.id; o.innerText = p.name; sel.appendChild(o);
-        });
-        if (!data || data.length === 0) sel.innerHTML = '<option value="">-- No projects yet --</option>';
+    okEl.innerText = '✓ Account created! You can now sign in. An admin can upgrade your role.';
+    document.getElementById('signupEmail').value    = '';
+    document.getElementById('signupPassword').value = '';
+    document.getElementById('signupConfirm').value  = '';
+    setTimeout(() => showSignin(), 3000);
+}
+
+async function loadRoleAndStart() {
+    const { data: roleData } = await supabaseClient
+        .from('user_roles').select('role').eq('id', currentUser.id).single();
+    currentRole = roleData ? roleData.role : 'user';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    const badge = document.getElementById('roleBadge');
+    badge.innerText = currentRole.charAt(0).toUpperCase() + currentRole.slice(1);
+    badge.className = 'role-badge ' + currentRole;
+    document.getElementById('adminView').style.display      = currentRole === 'admin'      ? 'block' : 'none';
+    document.getElementById('supervisorView').style.display = currentRole === 'supervisor' ? 'block' : 'none';
+    document.getElementById('userView').style.display       = currentRole === 'user'       ? 'block' : 'none';
+    await fetchExistingProjects();
+    if (currentRole === 'admin') loadUserManagement();
+}
+
+async function loadUserManagement() {
+    const listEl = document.getElementById('userManagementList');
+    const { data, error } = await supabaseClient.from('user_roles').select('*').order('email');
+    if (error) { listEl.innerHTML = `<p style="color:var(--danger);">Could not load users: ${error.message}</p>`; return; }
+    if (!data || data.length === 0) { listEl.innerHTML = '<p style="color:var(--secondary);">No users found.</p>'; return; }
+    let html = '<table style="width:100%;border-collapse:collapse;font-size:14px;">';
+    html += '<thead><tr style="background:var(--primary);color:white;"><th style="padding:9px 12px;text-align:left;">Email</th><th style="padding:9px 12px;text-align:left;">Role</th><th style="padding:9px 12px;text-align:left;">Action</th></tr></thead><tbody>';
+    data.forEach((u, idx) => {
+        const bg = idx % 2 === 0 ? '#F7FAFC' : 'white';
+        html += `<tr style="background:${bg};">
+            <td style="padding:9px 12px;">${u.email}</td>
+            <td style="padding:9px 12px;">
+                <select id="role_${u.id}" style="padding:5px 8px;font-size:13px;width:auto;">
+                    <option value="user"       ${u.role==='user'?'selected':''}>User</option>
+                    <option value="supervisor" ${u.role==='supervisor'?'selected':''}>Supervisor</option>
+                    <option value="admin"      ${u.role==='admin'?'selected':''}>Admin</option>
+                </select>
+            </td>
+            <td style="padding:9px 12px;">
+                <button class="btn btn-primary" style="padding:6px 14px;font-size:13px;" onclick="updateUserRole('${u.id}','${u.email}')">Save</button>
+            </td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    listEl.innerHTML = html;
+}
+
+async function updateUserRole(userId, email) {
+    const newRole = document.getElementById('role_' + userId).value;
+    const statusEl = document.getElementById('userMgmtStatus');
+    statusEl.className = 'save-status pending'; statusEl.innerText = 'Saving…';
+    const { error } = await supabaseClient.from('user_roles').update({ role: newRole }).eq('id', userId);
+    if (error) { statusEl.className = 'save-status err'; statusEl.innerText = 'Error: ' + error.message; return; }
+    statusEl.className = 'save-status ok';
+    statusEl.innerText = `${email} updated to ${newRole}.`;
+}
+
+async function doLogout() {
+    await supabaseClient.auth.signOut();
+    currentUser = null; currentRole = null; activeProjectId = null;
+    gridRows = []; depRows = []; allDependencies = [];
+    document.getElementById('mainApp').style.display  = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginEmail').value    = '';
+    document.getElementById('loginPassword').value = '';
+}
+
+// Check if already logged in on page load
+async function checkSession() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) { currentUser = session.user; await loadRoleAndStart(); }
+}
+
+function toggleConfig() {
+    const box = document.getElementById('configBox');
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── PROJECTS ─────────────────────────────────────────────────────
+
+async function fetchExistingProjects() {
+    const { data, error } = await supabaseClient.from('projects').select('*').order('created_at', { ascending: false });
+    const sel = document.getElementById('existingProjectSelect');
+    if (error) { sel.innerHTML = `<option value="">-- Error loading --</option>`; return; }
+    sel.innerHTML = '<option value="">-- Select a project --</option>';
+    (data || []).forEach(p => {
+        const o = document.createElement('option'); o.value = p.id; o.innerText = p.name; sel.appendChild(o);
+    });
+}
+
+async function selectExistingProject(id) {
+    if (!id) return;
+    const { data, error } = await supabaseClient.from('projects').select('*').eq('id', id).single();
+    if (error) return alert('Could not load: ' + error.message);
+    activeProjectId = data.id;
+    const banner = document.getElementById('activeProjectBanner');
+    banner.innerText = `Active: ${data.name}`;
+    banner.style.display = 'block';
+    if (document.getElementById('projName')) document.getElementById('projName').value = data.name || '';
+    if (document.getElementById('projDesc')) document.getElementById('projDesc').value = data.description || '';
+    await refreshDataContainers();
+    if (currentRole === 'supervisor') loadSupervisorView();
+}
+
+async function handleProjectSubmit(event) {
+    event.preventDefault();
+    const name = document.getElementById('projName').value.trim();
+    const description = document.getElementById('projDesc').value.trim();
+    const { data, error } = await supabaseClient.from('projects').insert([{ name, description }]).select();
+    if (error) return alert('Error: ' + error.message);
+    activeProjectId = data[0].id;
+    alert('Project created: ' + data[0].name);
+    fetchExistingProjects();
+    refreshDataContainers();
+}
+
+// ── ROW OBJECTS ──────────────────────────────────────────────────
+
+function newRowObject(existing) {
+    rowCounter++;
+    return {
+        rowId: 'r' + rowCounter,
+        dbId:         existing ? existing.id : null,
+        isNew:        !existing, isDirty: false,
+        task_label:   existing ? (existing.task_label || '') : '',
+        title:        existing ? (existing.title || '') : '',
+        type:         existing ? (existing.type || '') : '',
+        duration:     existing && existing.duration !== null ? existing.duration : '',
+        parent_label: '',
+        start_date:   existing ? (existing.start_date || '') : '',
+        end_date:     existing ? (existing.end_date   || '') : '',
+        progress:     existing && existing.progress !== null ? existing.progress : ''
+    };
+}
+
+// ── DATE HELPERS ─────────────────────────────────────────────────
+
+function parseDate(val) {
+    if (!val && val !== 0) return '';
+    if (val instanceof Date) return isNaN(val) ? '' : val.toISOString().split('T')[0];
+    if (typeof val === 'number') {
+        const d = new Date(Math.round((val - 25569) * 86400000));
+        return isNaN(d) ? '' : d.toISOString().split('T')[0];
     }
-
-    async function selectExistingProject(id) {
-        if (!id) return;
-        const { data, error } = await supabaseClient.from('projects').select('*').eq('id', id).single();
-        if (error) return alert('Could not load: ' + error.message);
-        activeProjectId = data.id;
-        document.getElementById('projName').value = data.name || '';
-        document.getElementById('projDesc').value = data.description || '';
-        document.getElementById('activeProjectBanner').innerText = `${data.name}\n[UUID: ${activeProjectId}]`;
-        await refreshDataContainers();
+    const s = String(val).trim();
+    if (!s) return '';
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    const mdy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (mdy) {
+        const [, m, d, y] = mdy;
+        const year = y.length === 2 ? (parseInt(y) > 50 ? '19' + y : '20' + y) : y;
+        return `${year}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
     }
+    const p = new Date(s);
+    return isNaN(p) ? '' : p.toISOString().split('T')[0];
+}
 
-    async function handleProjectSubmit(event) {
-        event.preventDefault();
-        if (!supabaseClient) return alert("Connect first.");
-        const name = document.getElementById('projName').value.trim();
-        const description = document.getElementById('projDesc').value.trim();
-        const { data, error } = await supabaseClient.from('projects').insert([{ name, description }]).select();
-        if (error) return alert("Error: " + error.message);
-        activeProjectId = data[0].id;
-        document.getElementById('activeProjectBanner').innerText = `${data[0].name}\n[UUID: ${activeProjectId}]`;
-        fetchExistingProjects();
-        refreshDataContainers();
-    }
+function parseProgress(val) {
+    if (val === null || val === undefined || val === '') return '';
+    const n = parseFloat(String(val).replace('%','').trim());
+    return isNaN(n) ? '' : n;
+}
 
-    // ── ROW OBJECT ──────────────────────────────────────────────────────────────
+function addDays(dateStr, days) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().split('T')[0];
+}
 
-    function newRowObject(existing) {
-        rowCounter++;
-        return {
-            rowId: 'r' + rowCounter,
-            dbId:         existing ? existing.id : null,
-            isNew:        !existing,
-            isDirty:      false,
-            task_label:   existing ? (existing.task_label || '') : '',
-            title:        existing ? (existing.title || '') : '',
-            type:         existing ? (existing.type || '') : '',
-            duration:     existing ? (existing.duration !== null && existing.duration !== undefined ? existing.duration : '') : '',
-            parent_label: '',   // restored separately from UUID map
-            start_date:   existing ? (existing.start_date || '') : '',
-            end_date:     existing ? (existing.end_date   || '') : '',
-            progress:     existing && existing.progress !== null && existing.progress !== undefined ? existing.progress : '',
-            sort_order:   existing ? (existing.sort_order || '') : ''
-        };
-    }
+function ea(s) { return s ? String(s).replace(/"/g, '&quot;') : ''; }
 
-    // ── DATE PARSER ─────────────────────────────────────────────────────────────
-    // Handles M/D/YYYY, YYYY-MM-DD, Excel serial dates, JS Date objects
+// ── IMPORT: TASKS ────────────────────────────────────────────────
 
-    function parseDate(val) {
-        if (!val && val !== 0) return '';
-        // JS Date object (from cellDates:true)
-        if (val instanceof Date) return isNaN(val) ? '' : val.toISOString().split('T')[0];
-        // Excel serial number fallback
-        if (typeof val === 'number') {
-            const d = new Date(Math.round((val - 25569) * 86400000));
-            return isNaN(d) ? '' : d.toISOString().split('T')[0];
-        }
-        const s = String(val).trim();
-        if (!s) return '';
-        // Already YYYY-MM-DD (from dateNF option)
-        if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
-        // M/D/YYYY or M/D/YY (original CSV format)
-        const mdy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-        if (mdy) {
-            const [, m, d, y] = mdy;
-            const year = y.length === 2 ? (parseInt(y) > 50 ? '19' + y : '20' + y) : y;
-            return `${year}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
-        }
-        // Last resort: native Date parse
-        const p = new Date(s);
-        return isNaN(p) ? '' : p.toISOString().split('T')[0];
-    }
+function importRowsFromArrays(rows) {
+    const statusEl = document.getElementById('importStatus');
+    let imported = 0;
+    rows.forEach(cells => {
+        if (!cells || cells.length === 0) return;
+        const c0 = (cells[0] || '').toString().trim();
+        if (/^task_?id$/i.test(c0)) return;
+        if (cells.every(c => !c || String(c).trim() === '')) return;
+        const row = newRowObject(null);
+        row.task_label   = c0;
+        row.parent_label = (cells[2] || '').toString().trim();
+        row.title        = (cells[3] || '').toString().trim() || c0 || '(untitled)';
+        row.start_date   = parseDate(cells[4]);
+        row.end_date     = parseDate(cells[5]);
+        row.duration     = (cells[6] !== '' && cells[6] !== undefined) ? (parseFloat(cells[6]) || '') : '';
+        row.progress     = parseProgress(cells[7]);
+        row.type         = (cells[8] || '').toString().trim();
+        gridRows.push(row);
+        imported++;
+    });
+    renderGrid();
+    statusEl.className = 'save-status ok';
+    statusEl.innerText = `Imported ${imported} row(s). Click "Save All Changes".`;
+}
 
-    // Strip % from progress string
-    function parseProgress(val) {
-        if (val === null || val === undefined || val === '') return '';
-        const s = String(val).replace('%', '').trim();
-        const n = parseFloat(s);
-        return isNaN(n) ? '' : n;
-    }
-
-    // ── IMPORT: TASKS ───────────────────────────────────────────────────────────
-    // CSV column order: task_id(0), Project_id(1), Parent_id(2), Title(3),
-    //   start_date(4), end_date(5), Duration(6), progress(7), Type(8), Sort_Order(9)
-
-    function importRowsFromArrays(rows) {
-        const statusEl = document.getElementById('importStatus');
-        let imported = 0;
-        let headerFound = false;
-
-        rows.forEach(cells => {
-            if (!cells || cells.length === 0) return;
-
-            const c0 = (cells[0] || '').toString().trim();
-
-            // Detect and skip the header row
-            if (/^task_?id$/i.test(c0)) { headerFound = true; return; }
-
-            // Skip completely blank rows
-            if (cells.every(c => !c || String(c).trim() === '')) return;
-
-            const row = newRowObject(null);
-            row.task_label   = c0;
-            // cells[1] = Project_id (we use the active project UUID instead)
-            row.parent_label = (cells[2] || '').toString().trim();
-            row.title        = (cells[3] || '').toString().trim() || c0 || '(untitled)';
-            row.start_date   = parseDate(cells[4]);
-            row.end_date     = parseDate(cells[5]);
-            row.duration     = (cells[6] !== '' && cells[6] !== undefined && cells[6] !== null) ? (parseFloat(cells[6]) || '') : '';
-            row.progress     = parseProgress(cells[7]);
-            row.type         = (cells[8] || '').toString().trim();
-            row.sort_order   = (cells[9] !== '' && cells[9] !== undefined) ? (parseInt(cells[9]) || '') : '';
-
-            gridRows.push(row);
-            imported++;
-        });
-
-        renderGrid();
-        statusEl.className = 'save-status ok';
-        statusEl.innerText = `Imported ${imported} row(s).${!headerFound ? ' (No header row detected — check column order.)' : ''} Click "Save All Changes" when ready.`;
-    }
-
-    function handleFileImport(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const statusEl = document.getElementById('importStatus');
-        statusEl.className = 'save-status pending';
-        statusEl.innerText = 'Reading file...';
-        const reader = new FileReader();
-        reader.onload = e => {
-            try {
-                const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd' });
-                const ws = wb.Sheets[wb.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
-                importRowsFromArrays(rows);
-            } catch (err) {
-                statusEl.className = 'save-status err';
-                statusEl.innerText = 'Could not read file: ' + err.message;
-            }
-            event.target.value = '';
-        };
-        reader.onerror = () => { statusEl.className = 'save-status err'; statusEl.innerText = 'File read error.'; };
-        reader.readAsArrayBuffer(file);
-    }
-
-    function handlePasteImport() {
-        const text = document.getElementById('pasteImportArea').value;
-        const statusEl = document.getElementById('importStatus');
-        if (!text || !text.trim()) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing pasted.'; return; }
-        importRowsFromArrays(text.trim().split('\n').map(l => l.split('\t')));
-        document.getElementById('pasteImportArea').value = '';
-    }
-
-    // ── IMPORT: DEPENDENCIES ────────────────────────────────────────────────────
-
-    async function importDependencyRowsFromArrays(rows) {
-        const statusEl = document.getElementById('depImportStatus');
-        statusEl.className = 'save-status pending';
-        statusEl.innerText = 'Matching task IDs...';
-
-        // Fetch all tasks for this project from DB to build label→dbId map
-        // This works even if the grid isn't loaded yet
-        let labelToDbId = {};
-
-        // First try gridRows (already in memory)
-        gridRows.filter(r => r.task_label && r.dbId).forEach(r => {
-            labelToDbId[r.task_label.trim()] = r.dbId;
-        });
-
-        // If grid is empty or we have an active project, also fetch from DB
-        if (supabaseClient && activeProjectId) {
-            const { data: dbTasks } = await supabaseClient
-                .from('tasks')
-                .select('id, task_label')
-                .eq('project_id', activeProjectId);
-            (dbTasks || []).forEach(t => {
-                if (t.task_label) labelToDbId[t.task_label.trim()] = t.id;
-            });
-        }
-
-        let imported = 0, skipped = 0;
-        const skippedLabels = [];
-
-        rows.forEach(cells => {
-            if (!cells || cells.length === 0) return;
-            const c0 = (cells[0] || '').toString().trim();
-            if (/^id$/i.test(c0) || /^source/i.test(c0)) return;
-            if (cells.every(c => !c || String(c).trim() === '')) return;
-
-            const srcLabel = (cells[1] || '').toString().trim();
-            const tgtLabel = (cells[2] || '').toString().trim();
-            if (!srcLabel || !tgtLabel) return;
-
-            const srcId = labelToDbId[srcLabel];
-            const tgtId = labelToDbId[tgtLabel];
-
-            if (!srcId || !tgtId) {
-                skipped++;
-                if (!srcId) skippedLabels.push(srcLabel);
-                if (!tgtId) skippedLabels.push(tgtLabel);
-                return;
-            }
-
-            const dep = newDepRowObject(null);
-            dep.source_task_id = srcId;
-            dep.target_task_id = tgtId;
-            dep.type = (cells[3] || 'FS').toString().trim().toUpperCase();
-            dep.lag  = parseInt(cells[4]) || 0;
-            depRows.push(dep);
-            imported++;
-        });
-
-        renderDependencyGrid();
-
-        if (skipped > 0) {
-            const unique = [...new Set(skippedLabels)];
-            statusEl.className = 'save-status err';
-            statusEl.innerText = `Imported ${imported}, skipped ${skipped}. Missing task labels: ${unique.join(', ')}`;
-        } else {
-            statusEl.className = 'save-status ok';
-            statusEl.innerText = `Imported ${imported} link(s). Click "Save All Dependencies".`;
-        }
-    }
-
-    function handleDepFileImport(event) {
-        const file = event.target.files[0]; if (!file) return;
-        const statusEl = document.getElementById('depImportStatus');
-        statusEl.className = 'save-status pending'; statusEl.innerText = 'Reading...';
-        const reader = new FileReader();
-        reader.onload = async e => {
-            try {
-                const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd' });
-                const ws = wb.Sheets[wb.SheetNames[0]];
-                await importDependencyRowsFromArrays(XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' }));
-            } catch (err) { statusEl.className = 'save-status err'; statusEl.innerText = 'Error: ' + err.message; }
-            event.target.value = '';
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    async function handleDepPasteImport() {
-        const text = document.getElementById('depPasteImportArea').value;
-        const statusEl = document.getElementById('depImportStatus');
-        if (!text || !text.trim()) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing pasted.'; return; }
-        await importDependencyRowsFromArrays(text.trim().split('\n').map(l => l.split('\t')));
-        document.getElementById('depPasteImportArea').value = '';
-    }
-
-    // ── GRID HELPERS ────────────────────────────────────────────────────────────
-
-    function ea(s) { return s ? String(s).replace(/"/g, '&quot;') : ''; }
-
-    function updateField(rowId, field, value) {
-        const row = gridRows.find(r => r.rowId === rowId);
-        if (!row) return;
-        row[field] = value;
-        if (!row.isNew) row.isDirty = true;
-        if (field === 'task_label') renderDependencyGrid();
-    }
-
-    function addBlankRow(n) {
-        for (let i = 0; i < n; i++) gridRows.push(newRowObject(null));
-        renderGrid();
-    }
-
-    function removeRow(rowId) {
-        const row = gridRows.find(r => r.rowId === rowId);
-        if (!row) return;
-        if (!row.isNew && !confirm('Delete this task from the database permanently?')) return;
-        if (!row.isNew) supabaseClient.from('tasks').delete().eq('id', row.dbId);
-        gridRows = gridRows.filter(r => r.rowId !== rowId);
-        renderGrid();
-    }
-
-    function renderGrid() {
-        const body = document.getElementById('gridBody');
-        body.innerHTML = '';
-        gridRows.forEach((row, idx) => {
-            const tr = document.createElement('tr');
-            tr.className = row.isNew ? 'new-row' : (row.isDirty ? 'dirty-row' : '');
-            tr.innerHTML = `
-                <td class="row-num">${idx + 1}</td>
-                <td><input type="text"   value="${ea(row.task_label)}"  placeholder="Task - 100" oninput="updateField('${row.rowId}','task_label',this.value)"></td>
-                <td><input type="text"   value="${ea(row.title)}"       placeholder="Title"       oninput="updateField('${row.rowId}','title',this.value)"></td>
-                <td><input type="text"   value="${ea(row.type)}"        placeholder="Task"        oninput="updateField('${row.rowId}','type',this.value)"></td>
-                <td><input type="number" value="${row.duration !== '' && row.duration !== undefined ? row.duration : ''}" step="0.1" min="0" placeholder="—" onchange="updateField('${row.rowId}','duration',this.value===''?'':(parseFloat(this.value)||0))"></td>
-                <td><input type="text"   value="${ea(row.parent_label)}" placeholder="Task - 5000" oninput="updateField('${row.rowId}','parent_label',this.value)"></td>
-                <td><input type="date"   value="${row.start_date || ''}" onchange="updateField('${row.rowId}','start_date',this.value)"></td>
-                <td><input type="date"   value="${row.end_date   || ''}" onchange="updateField('${row.rowId}','end_date',this.value)"></td>
-                <td><input type="number" value="${row.progress !== '' && row.progress !== null && row.progress !== undefined ? row.progress : ''}" min="0" max="100" step="1" placeholder="—" onchange="updateField('${row.rowId}','progress',this.value===''?'':(parseFloat(this.value)||0))"></td>
-                <td class="row-actions"><button onclick="removeRow('${row.rowId}')" title="Delete">✕</button></td>`;
-            body.appendChild(tr);
-        });
-        renderDependencyGrid();
-    }
-
-    // ── DEPENDENCY GRID ─────────────────────────────────────────────────────────
-
-    function newDepRowObject(existing) {
-        depRowCounter++;
-        return {
-            depRowId: 'd' + depRowCounter,
-            dbId: existing ? existing.id : null,
-            isNew: !existing, isDirty: false,
-            source_task_id: existing ? existing.source_task_id : '',
-            target_task_id: existing ? existing.target_task_id : '',
-            type: existing ? existing.type : 'FS',
-            lag:  existing ? existing.lag  : 0
-        };
-    }
-
-    function taskOptions(selectedDbId) {
-        let html = '<option value="">-- Select --</option>';
-        gridRows.filter(r => r.dbId).forEach(t => {
-            const lbl = t.task_label ? `${t.task_label} — ${t.title}` : t.title;
-            html += `<option value="${t.dbId}" ${t.dbId === selectedDbId ? 'selected' : ''}>${ea(lbl)}</option>`;
-        });
-        return html;
-    }
-
-    function addDependencyRow() {
-        if (gridRows.filter(r => r.dbId).length < 2) return alert('Save at least 2 tasks first.');
-        depRows.push(newDepRowObject(null));
-        renderDependencyGrid();
-    }
-
-    function updateDepField(depRowId, field, value) {
-        const row = depRows.find(r => r.depRowId === depRowId);
-        if (!row) return;
-        row[field] = value;
-        if (!row.isNew) row.isDirty = true;
-    }
-
-    function removeDependencyRow(depRowId) {
-        const row = depRows.find(r => r.depRowId === depRowId);
-        if (!row) return;
-        if (!row.isNew && !confirm('Delete this dependency permanently?')) return;
-        if (!row.isNew) supabaseClient.from('task_dependencies').delete().eq('id', row.dbId);
-        depRows = depRows.filter(r => r.depRowId !== depRowId);
-        renderDependencyGrid();
-    }
-
-    function renderDependencyGrid() {
-        const body = document.getElementById('depGridBody');
-        if (!body) return;
-        body.innerHTML = '';
-        depRows.forEach((row, idx) => {
-            const tr = document.createElement('tr');
-            tr.className = row.isNew ? 'new-row' : (row.isDirty ? 'dirty-row' : '');
-            tr.innerHTML = `
-                <td class="row-num">${idx + 1}</td>
-                <td style="text-align:center;color:var(--secondary);font-weight:600;padding:8px;">Dep ${idx+1}</td>
-                <td><select onchange="updateDepField('${row.depRowId}','source_task_id',this.value)">${taskOptions(row.source_task_id)}</select></td>
-                <td><select onchange="updateDepField('${row.depRowId}','target_task_id',this.value)">${taskOptions(row.target_task_id)}</select></td>
-                <td><select onchange="updateDepField('${row.depRowId}','type',this.value)">
-                    <option value="FS" ${row.type==='FS'?'selected':''}>FS – Finish to Start</option>
-                    <option value="SS" ${row.type==='SS'?'selected':''}>SS – Start to Start</option>
-                    <option value="FF" ${row.type==='FF'?'selected':''}>FF – Finish to Finish</option>
-                    <option value="SF" ${row.type==='SF'?'selected':''}>SF – Start to Finish</option>
-                </select></td>
-                <td><input type="number" value="${row.lag}" min="-365" max="365" onchange="updateDepField('${row.depRowId}','lag',parseInt(this.value)||0)"></td>
-                <td class="row-actions"><button onclick="removeDependencyRow('${row.depRowId}')" title="Delete">✕</button></td>`;
-            body.appendChild(tr);
-        });
-    }
-
-    // ── SAVE: TASKS ─────────────────────────────────────────────────────────────
-
-    async function saveAllRows() {
-        if (!supabaseClient) return alert("Connect to Supabase first.");
-        if (!activeProjectId) return alert("Select or create a project first.");
-        const statusEl = document.getElementById('saveStatus');
-        statusEl.className = 'save-status pending';
-        statusEl.innerText = 'Saving…';
-
-        const toSave = gridRows.filter(r =>
-            r.task_label || r.title || r.parent_label || r.start_date || r.end_date ||
-            (r.duration !== '' && r.duration !== undefined) ||
-            (r.progress !== '' && r.progress !== undefined) || r.type
-        );
-
-        if (toSave.length === 0) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing to save.'; return; }
-
-        // label → dbId map for resolving parent_label → UUID
-        function labelMap() {
-            const m = {};
-            gridRows.forEach(r => { if (r.task_label && r.dbId) m[r.task_label.trim()] = r.dbId; });
-            return m;
-        }
-
-        let saved = 0;
-        const warnings = [];
-
+function handleFileImport(event) {
+    const file = event.target.files[0]; if (!file) return;
+    const statusEl = document.getElementById('importStatus');
+    statusEl.className = 'save-status pending'; statusEl.innerText = 'Reading...';
+    const reader = new FileReader();
+    reader.onload = e => {
         try {
-            for (const row of toSave) {
-                const lm = labelMap();
+            const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd' });
+            importRowsFromArrays(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: '' }));
+        } catch (err) { statusEl.className = 'save-status err'; statusEl.innerText = 'Error: ' + err.message; }
+        event.target.value = '';
+    };
+    reader.readAsArrayBuffer(file);
+}
 
-                // Resolve parent label to UUID
-                let parentUUID = null;
-                if (row.parent_label && row.parent_label.trim()) {
-                    parentUUID = lm[row.parent_label.trim()] || null;
-                    if (!parentUUID) warnings.push(`Parent "${row.parent_label}" not found for "${row.task_label}" — left blank.`);
-                }
+function handlePasteImport() {
+    const text = document.getElementById('pasteImportArea').value;
+    const statusEl = document.getElementById('importStatus');
+    if (!text || !text.trim()) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing pasted.'; return; }
+    importRowsFromArrays(text.trim().split('\n').map(l => l.split('\t')));
+    document.getElementById('pasteImportArea').value = '';
+}
 
-                // Duration in DB is days (int4); CSV has weeks — convert
-                let durationDays = null;
-                if (row.duration !== '' && row.duration !== undefined && row.duration !== null) {
-                    durationDays = Math.round(parseFloat(row.duration) * 7);
-                } else if (row.start_date && row.end_date) {
-                    durationDays = Math.ceil((new Date(row.end_date) - new Date(row.start_date)) / 86400000);
-                }
+// ── IMPORT: DEPENDENCIES ─────────────────────────────────────────
 
-                const titleVal = (row.title && row.title.trim()) ? row.title.trim()
-                               : (row.task_label ? row.task_label : '(untitled)');
-
-                const payload = {
-                    project_id: activeProjectId,
-                    title:      titleVal,
-                    parent_id:  parentUUID,
-                    start_date: row.start_date || null,
-                    end_date:   row.end_date   || null,
-                    duration:   durationDays,
-                    progress:   (row.progress === '' || row.progress === undefined || row.progress === null) ? 0 : Number(row.progress),
-                    type:       row.type || 'task',
-                    sort_order: (row.sort_order !== '' && row.sort_order !== undefined) ? Number(row.sort_order) : (gridRows.indexOf(row) + 1)
-                };
-
-                // Include task_label if the column exists (graceful degradation if not)
-                const withLabel = { ...payload, task_label: row.task_label || null };
-
-                async function trySave(p) {
-                    if (row.isNew) {
-                        const { data, error } = await supabaseClient.from('tasks').insert([p]).select();
-                        if (error) {
-                            if (/task_label/i.test(error.message)) return trySave(payload);
-                            const m = (error.message.match(/null value in column "(\w+)"/) || []);
-                            if (m[1]) return trySave({ ...p, [m[1]]: m[1]==='type'?'task': m[1]==='sort_order'?0:0 });
-                            throw new Error(`Save failed for "${titleVal}": ${error.message}`);
-                        }
-                        row.dbId = data[0].id; row.isNew = false;
-                    } else {
-                        const { error } = await supabaseClient.from('tasks').update(p).eq('id', row.dbId);
-                        if (error) {
-                            if (/task_label/i.test(error.message)) return trySave(payload);
-                            throw new Error(`Update failed for "${titleVal}": ${error.message}`);
-                        }
-                    }
-                }
-
-                await trySave(withLabel);
-                row.isDirty = false;
-                saved++;
-            }
-
-            statusEl.className = warnings.length ? 'save-status err' : 'save-status ok';
-            statusEl.innerText = `Saved ${saved} task(s).` + (warnings.length ? ' ⚠ ' + warnings.join(' ') : '');
-            renderGrid();
-            await refreshDataContainers();
-        } catch (err) {
-            statusEl.className = 'save-status err';
-            statusEl.innerText = err.message;
-        }
+async function importDependencyRowsFromArrays(rows) {
+    const statusEl = document.getElementById('depImportStatus');
+    statusEl.className = 'save-status pending'; statusEl.innerText = 'Matching task IDs...';
+    let labelToDbId = {};
+    gridRows.filter(r => r.task_label && r.dbId).forEach(r => { labelToDbId[r.task_label.trim()] = r.dbId; });
+    if (supabaseClient && activeProjectId) {
+        const { data: dbTasks } = await supabaseClient.from('tasks').select('id, task_label').eq('project_id', activeProjectId);
+        (dbTasks || []).forEach(t => { if (t.task_label) labelToDbId[t.task_label.trim()] = t.id; });
     }
+    let imported = 0, skipped = 0; const skippedLabels = [];
+    rows.forEach(cells => {
+        if (!cells || cells.length === 0) return;
+        const c0 = (cells[0] || '').toString().trim();
+        if (/^id$/i.test(c0) || /^source/i.test(c0)) return;
+        if (cells.every(c => !c || String(c).trim() === '')) return;
+        const srcLabel = (cells[1] || '').toString().trim();
+        const tgtLabel = (cells[2] || '').toString().trim();
+        if (!srcLabel || !tgtLabel) return;
+        const srcId = labelToDbId[srcLabel]; const tgtId = labelToDbId[tgtLabel];
+        if (!srcId || !tgtId) { skipped++; if (!srcId) skippedLabels.push(srcLabel); if (!tgtId) skippedLabels.push(tgtLabel); return; }
+        const dep = newDepRowObject(null);
+        dep.source_task_id = srcId; dep.target_task_id = tgtId;
+        dep.type = (cells[3] || 'FS').toString().trim().toUpperCase();
+        dep.lag  = parseInt(cells[4]) || 0;
+        depRows.push(dep); imported++;
+    });
+    renderDependencyGrid();
+    statusEl.className = skipped > 0 ? 'save-status err' : 'save-status ok';
+    statusEl.innerText = skipped > 0
+        ? `Imported ${imported}, skipped ${skipped}. Missing: ${[...new Set(skippedLabels)].join(', ')}`
+        : `Imported ${imported} link(s). Click "Save All Dependencies".`;
+}
 
-    // ── SAVE: DEPENDENCIES ──────────────────────────────────────────────────────
-
-    async function saveAllDependencies() {
-        if (!supabaseClient) return alert("Connect first.");
-        if (!activeProjectId) return alert("Select a project first.");
-        const statusEl = document.getElementById('depSaveStatus');
-        statusEl.className = 'save-status pending'; statusEl.innerText = 'Saving…';
-        const toSave = depRows.filter(r => r.source_task_id && r.target_task_id);
-        if (toSave.length === 0) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing to save.'; return; }
+function handleDepFileImport(event) {
+    const file = event.target.files[0]; if (!file) return;
+    const statusEl = document.getElementById('depImportStatus');
+    statusEl.className = 'save-status pending'; statusEl.innerText = 'Reading...';
+    const reader = new FileReader();
+    reader.onload = async e => {
         try {
-            for (const row of toSave) {
-                if (row.source_task_id === row.target_task_id) throw new Error('A task cannot depend on itself.');
-                const p = { source_task_id: row.source_task_id, target_task_id: row.target_task_id, type: row.type||'FS', lag: row.lag||0 };
+            const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd' });
+            await importDependencyRowsFromArrays(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: '' }));
+        } catch (err) { statusEl.className = 'save-status err'; statusEl.innerText = 'Error: ' + err.message; }
+        event.target.value = '';
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+async function handleDepPasteImport() {
+    const text = document.getElementById('depPasteImportArea').value;
+    const statusEl = document.getElementById('depImportStatus');
+    if (!text || !text.trim()) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing pasted.'; return; }
+    await importDependencyRowsFromArrays(text.trim().split('\n').map(l => l.split('\t')));
+    document.getElementById('depPasteImportArea').value = '';
+}
+
+// ── ADMIN GRID ───────────────────────────────────────────────────
+
+function updateField(rowId, field, value) {
+    const row = gridRows.find(r => r.rowId === rowId); if (!row) return;
+    row[field] = value; if (!row.isNew) row.isDirty = true;
+    if (field === 'task_label') renderDependencyGrid();
+}
+
+function addBlankRow(n) {
+    for (let i = 0; i < n; i++) gridRows.push(newRowObject(null));
+    renderGrid();
+}
+
+function removeRow(rowId) {
+    const row = gridRows.find(r => r.rowId === rowId); if (!row) return;
+    if (!row.isNew && !confirm('Delete this task permanently?')) return;
+    if (!row.isNew) supabaseClient.from('tasks').delete().eq('id', row.dbId);
+    gridRows = gridRows.filter(r => r.rowId !== rowId);
+    renderGrid();
+}
+
+function renderGrid() {
+    const body = document.getElementById('gridBody'); if (!body) return;
+    body.innerHTML = '';
+    gridRows.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = row.isNew ? 'new-row' : (row.isDirty ? 'dirty-row' : '');
+        tr.innerHTML = `
+            <td class="row-num">${idx+1}</td>
+            <td><input type="text"   value="${ea(row.task_label)}"  placeholder="Task - 100" oninput="updateField('${row.rowId}','task_label',this.value)"></td>
+            <td><input type="text"   value="${ea(row.title)}"       placeholder="Title"      oninput="updateField('${row.rowId}','title',this.value)"></td>
+            <td><input type="text"   value="${ea(row.type)}"        placeholder="Task"       oninput="updateField('${row.rowId}','type',this.value)"></td>
+            <td><input type="number" value="${row.duration !== '' && row.duration !== undefined ? row.duration : ''}" step="0.1" min="0" placeholder="—" onchange="updateField('${row.rowId}','duration',this.value===''?'':(parseFloat(this.value)||0))"></td>
+            <td><input type="text"   value="${ea(row.parent_label)}" placeholder="Task - 5000" oninput="updateField('${row.rowId}','parent_label',this.value)"></td>
+            <td><input type="date"   value="${row.start_date || ''}" onchange="updateField('${row.rowId}','start_date',this.value)"></td>
+            <td><input type="date"   value="${row.end_date   || ''}" onchange="updateField('${row.rowId}','end_date',this.value)"></td>
+            <td><input type="number" value="${row.progress !== '' && row.progress !== null ? row.progress : ''}" min="0" max="100" step="1" placeholder="—" onchange="updateField('${row.rowId}','progress',this.value===''?'':(parseFloat(this.value)||0))"></td>
+            <td class="row-actions"><button onclick="removeRow('${row.rowId}')" title="Delete">✕</button></td>`;
+        body.appendChild(tr);
+    });
+    renderDependencyGrid();
+}
+
+// ── DEPENDENCY GRID ──────────────────────────────────────────────
+
+function newDepRowObject(existing) {
+    depRowCounter++;
+    return { depRowId: 'd'+depRowCounter, dbId: existing?existing.id:null, isNew: !existing, isDirty: false,
+        source_task_id: existing?existing.source_task_id:'', target_task_id: existing?existing.target_task_id:'',
+        type: existing?existing.type:'FS', lag: existing?existing.lag:0 };
+}
+
+function taskOptions(selectedDbId) {
+    let html = '<option value="">-- Select --</option>';
+    gridRows.filter(r => r.dbId).forEach(t => {
+        const lbl = t.task_label ? `${t.task_label} — ${t.title}` : t.title;
+        html += `<option value="${t.dbId}" ${t.dbId===selectedDbId?'selected':''}>${ea(lbl)}</option>`;
+    });
+    return html;
+}
+
+function addDependencyRow() {
+    if (gridRows.filter(r => r.dbId).length < 2) return alert('Save at least 2 tasks first.');
+    depRows.push(newDepRowObject(null)); renderDependencyGrid();
+}
+
+function updateDepField(depRowId, field, value) {
+    const row = depRows.find(r => r.depRowId === depRowId); if (!row) return;
+    row[field] = value; if (!row.isNew) row.isDirty = true;
+}
+
+function removeDependencyRow(depRowId) {
+    const row = depRows.find(r => r.depRowId === depRowId); if (!row) return;
+    if (!row.isNew && !confirm('Delete?')) return;
+    if (!row.isNew) supabaseClient.from('task_dependencies').delete().eq('id', row.dbId);
+    depRows = depRows.filter(r => r.depRowId !== depRowId); renderDependencyGrid();
+}
+
+function renderDependencyGrid() {
+    const body = document.getElementById('depGridBody'); if (!body) return;
+    body.innerHTML = '';
+    depRows.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = row.isNew ? 'new-row' : (row.isDirty ? 'dirty-row' : '');
+        tr.innerHTML = `
+            <td class="row-num">${idx+1}</td>
+            <td style="text-align:center;color:var(--secondary);font-weight:600;padding:8px;">Dep ${idx+1}</td>
+            <td><select onchange="updateDepField('${row.depRowId}','source_task_id',this.value)">${taskOptions(row.source_task_id)}</select></td>
+            <td><select onchange="updateDepField('${row.depRowId}','target_task_id',this.value)">${taskOptions(row.target_task_id)}</select></td>
+            <td><select onchange="updateDepField('${row.depRowId}','type',this.value)">
+                <option value="FS" ${row.type==='FS'?'selected':''}>FS</option>
+                <option value="SS" ${row.type==='SS'?'selected':''}>SS</option>
+                <option value="FF" ${row.type==='FF'?'selected':''}>FF</option>
+                <option value="SF" ${row.type==='SF'?'selected':''}>SF</option>
+            </select></td>
+            <td><input type="number" value="${row.lag}" min="-365" max="365" onchange="updateDepField('${row.depRowId}','lag',parseInt(this.value)||0)"></td>
+            <td class="row-actions"><button onclick="removeDependencyRow('${row.depRowId}')">✕</button></td>`;
+        body.appendChild(tr);
+    });
+}
+
+// ── SAVE: TASKS ──────────────────────────────────────────────────
+
+async function saveAllRows() {
+    if (!activeProjectId) return alert('Select a project first.');
+    const statusEl = document.getElementById('saveStatus');
+    statusEl.className = 'save-status pending'; statusEl.innerText = 'Saving…';
+    const toSave = gridRows.filter(r => r.task_label || r.title || r.start_date || r.end_date || r.duration !== '');
+    if (toSave.length === 0) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing to save.'; return; }
+    function getLabelMap() { const m = {}; gridRows.forEach(r => { if (r.task_label && r.dbId) m[r.task_label.trim()] = r.dbId; }); return m; }
+    let saved = 0; const warnings = [];
+    try {
+        for (const row of toSave) {
+            const lm = getLabelMap();
+            let parentUUID = null;
+            if (row.parent_label && row.parent_label.trim()) {
+                parentUUID = lm[row.parent_label.trim()] || null;
+                if (!parentUUID) warnings.push(`Parent "${row.parent_label}" not found for "${row.task_label}".`);
+            }
+            let durationDays = null;
+            if (row.duration !== '' && row.duration !== undefined) durationDays = Math.round(parseFloat(row.duration) * 7);
+            else if (row.start_date && row.end_date) durationDays = Math.ceil((new Date(row.end_date) - new Date(row.start_date)) / 86400000);
+            const titleVal = (row.title && row.title.trim()) ? row.title.trim() : (row.task_label || '(untitled)');
+            const payload = { project_id: activeProjectId, title: titleVal, parent_id: parentUUID,
+                start_date: row.start_date||null, end_date: row.end_date||null, duration: durationDays,
+                sort_order: gridRows.indexOf(row)+1, type: row.type||'task',
+                progress: (row.progress===''||row.progress===undefined||row.progress===null)?0:Number(row.progress) };
+            const withLabel = { ...payload, task_label: row.task_label||null };
+            async function trySave(p) {
                 if (row.isNew) {
-                    const { data, error } = await supabaseClient.from('task_dependencies').insert([p]).select();
-                    if (error) throw new Error('Dep save failed: ' + error.message);
+                    const { data, error } = await supabaseClient.from('tasks').insert([p]).select();
+                    if (error) {
+                        if (/task_label/i.test(error.message)) return trySave(payload);
+                        const m = (error.message.match(/null value in column "(\w+)"/) || []);
+                        if (m[1]) return trySave({ ...p, [m[1]]: m[1]==='type'?'task':0 });
+                        throw new Error(`Save failed for "${titleVal}": ${error.message}`);
+                    }
                     row.dbId = data[0].id; row.isNew = false;
                 } else {
-                    const { error } = await supabaseClient.from('task_dependencies').update(p).eq('id', row.dbId);
-                    if (error) throw new Error('Dep update failed: ' + error.message);
+                    const { error } = await supabaseClient.from('tasks').update(p).eq('id', row.dbId);
+                    if (error) {
+                        if (/task_label/i.test(error.message)) return trySave(payload);
+                        throw new Error(`Update failed for "${titleVal}": ${error.message}`);
+                    }
                 }
-                row.isDirty = false;
             }
-            statusEl.className = 'save-status ok';
-            statusEl.innerText = `Saved ${toSave.length} dependency link(s).`;
-            await refreshDataContainers();
-        } catch (err) { statusEl.className = 'save-status err'; statusEl.innerText = err.message; }
+            await trySave(withLabel); row.isDirty = false; saved++;
+        }
+        statusEl.className = warnings.length ? 'save-status err' : 'save-status ok';
+        statusEl.innerText = `Saved ${saved} task(s).` + (warnings.length ? ' ⚠ ' + warnings.join(' ') : '');
+        renderGrid(); await refreshDataContainers();
+    } catch (err) { statusEl.className = 'save-status err'; statusEl.innerText = err.message; }
+}
+
+async function saveAllDependencies() {
+    if (!activeProjectId) return alert('Select a project first.');
+    const statusEl = document.getElementById('depSaveStatus');
+    statusEl.className = 'save-status pending'; statusEl.innerText = 'Saving…';
+    const toSave = depRows.filter(r => r.source_task_id && r.target_task_id);
+    if (toSave.length === 0) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing to save.'; return; }
+    try {
+        for (const row of toSave) {
+            if (row.source_task_id === row.target_task_id) throw new Error('A task cannot depend on itself.');
+            const p = { source_task_id: row.source_task_id, target_task_id: row.target_task_id, type: row.type||'FS', lag: row.lag||0 };
+            if (row.isNew) {
+                const { data, error } = await supabaseClient.from('task_dependencies').insert([p]).select();
+                if (error) throw new Error('Dep save failed: ' + error.message);
+                row.dbId = data[0].id; row.isNew = false;
+            } else {
+                const { error } = await supabaseClient.from('task_dependencies').update(p).eq('id', row.dbId);
+                if (error) throw new Error('Dep update failed: ' + error.message);
+            }
+            row.isDirty = false;
+        }
+        statusEl.className = 'save-status ok'; statusEl.innerText = `Saved ${toSave.length} dependency link(s).`;
+        await refreshDataContainers();
+    } catch (err) { statusEl.className = 'save-status err'; statusEl.innerText = err.message; }
+}
+
+// ── REFRESH ──────────────────────────────────────────────────────
+
+async function refreshDataContainers() {
+    if (!activeProjectId) return;
+    const { data: tasks, error } = await supabaseClient.from('tasks').select('*').eq('project_id', activeProjectId).order('sort_order', { ascending: true });
+    if (error) return alert('Load error: ' + error.message);
+    const taskIds = (tasks||[]).map(t => t.id);
+    let deps = [];
+    if (taskIds.length > 0) {
+        const { data: d } = await supabaseClient.from('task_dependencies').select('*').in('target_task_id', taskIds);
+        deps = d || [];
+    }
+    allDependencies = deps;
+    const uuidToLabel = {}; (tasks||[]).forEach(t => { uuidToLabel[t.id] = t.task_label||''; });
+    gridRows = (tasks||[]).map(t => { const row = newRowObject(t); row.parent_label = t.parent_id ? (uuidToLabel[t.parent_id]||'') : ''; return row; });
+    if (gridRows.length === 0) addBlankRow(3); else renderGrid();
+    depRows = deps.map(d => newDepRowObject(d)); renderDependencyGrid();
+    if (document.getElementById('saveStatus')) document.getElementById('saveStatus').innerText = '';
+    if (document.getElementById('depSaveStatus')) document.getElementById('depSaveStatus').innerText = '';
+}
+
+// ── SUPERVISOR VIEW ──────────────────────────────────────────────
+
+async function loadSupervisorView() {
+    if (!activeProjectId) return;
+    const statusEl = document.getElementById('supSaveStatus');
+    statusEl.innerText = '';
+    await refreshDataContainers();
+    const panel = document.getElementById('supGanttPanel');
+    const tasksWithDates = gridRows.filter(r => r.dbId && r.title);
+    if (tasksWithDates.length === 0) { panel.innerHTML = '<p style="color:var(--secondary);padding:20px;">No tasks found. Select a project first.</p>'; return; }
+
+    let html = `<div class="sup-gantt-header">
+        <div style="width:200px;flex-shrink:0;">Task</div>
+        <div style="flex:1;"></div>
+        <div style="width:280px;flex-shrink:0;display:flex;gap:8px;">
+            <span style="width:130px;">Start Date</span>
+            <span style="width:130px;">End Date</span>
+        </div>
+    </div>`;
+
+    tasksWithDates.forEach(row => {
+        html += `<div class="sup-gantt-row">
+            <div class="sup-gantt-label" title="${ea(row.task_label ? row.task_label+' — '+row.title : row.title)}">
+                ${ea(row.task_label ? row.task_label+' — '+row.title : row.title)}
+            </div>
+            <div class="sup-gantt-bar-wrap">
+                <div style="height:20px;background:${row.type==='Milestone'?'#805AD5':row.type==='Inspection'?'#DD6B20':'#3182CE'};border-radius:3px;opacity:0.7;min-width:4px;"></div>
+            </div>
+            <div class="sup-gantt-dates">
+                <input type="date" value="${row.start_date||''}" id="sup_start_${row.dbId}"
+                    onchange="supervisorDateChange('${row.dbId}','start_date',this.value)" title="Start Date">
+                <input type="date" value="${row.end_date||''}" id="sup_end_${row.dbId}"
+                    onchange="supervisorDateChange('${row.dbId}','end_date',this.value)" title="End Date">
+            </div>
+        </div>`;
+    });
+
+    panel.innerHTML = html;
+}
+
+async function supervisorDateChange(dbId, field, newVal) {
+    const statusEl = document.getElementById('supSaveStatus');
+    statusEl.className = 'save-status pending'; statusEl.innerText = 'Saving & cascading…';
+    const row = gridRows.find(r => r.dbId === dbId);
+    if (!row) return;
+    const oldEndDate = row.end_date;
+    row[field] = newVal;
+    if (!row.isNew) row.isDirty = true;
+
+    // Save this task's dates
+    const { error } = await supabaseClient.from('tasks').update({ start_date: row.start_date||null, end_date: row.end_date||null }).eq('id', dbId);
+    if (error) { statusEl.className = 'save-status err'; statusEl.innerText = 'Save failed: ' + error.message; return; }
+
+    // Cascade: if end_date changed, shift all FS-dependent tasks by the delta
+    if (field === 'end_date' && oldEndDate && newVal) {
+        const delta = Math.round((new Date(newVal) - new Date(oldEndDate)) / 86400000);
+        if (delta !== 0) await cascadeShift(dbId, delta, new Set([dbId]));
     }
 
-    // ── REFRESH FROM DB ─────────────────────────────────────────────────────────
+    await refreshDataContainers();
+    loadSupervisorView();
+    statusEl.className = 'save-status ok'; statusEl.innerText = 'Saved & cascaded.';
+}
 
-    async function refreshDataContainers() {
-        if (!supabaseClient || !activeProjectId) return;
-        const { data: tasks, error } = await supabaseClient
-            .from('tasks').select('*').eq('project_id', activeProjectId).order('sort_order', { ascending: true });
-        if (error) return alert('Load error: ' + error.message);
+async function cascadeShift(sourceDbId, deltaDays, visited) {
+    // Find all FS dependencies where this task is the source
+    const dependentDeps = allDependencies.filter(d => d.source_task_id === sourceDbId && d.type === 'FS');
+    for (const dep of dependentDeps) {
+        if (visited.has(dep.target_task_id)) continue;
+        visited.add(dep.target_task_id);
+        const targetRow = gridRows.find(r => r.dbId === dep.target_task_id);
+        if (!targetRow) continue;
+        const newStart = targetRow.start_date ? addDays(targetRow.start_date, deltaDays + (dep.lag||0)) : '';
+        const newEnd   = targetRow.end_date   ? addDays(targetRow.end_date,   deltaDays + (dep.lag||0)) : '';
+        const oldEnd = targetRow.end_date;
+        targetRow.start_date = newStart; targetRow.end_date = newEnd;
+        // Update input fields in the supervisor panel
+        const si = document.getElementById('sup_start_' + dep.target_task_id);
+        const ei = document.getElementById('sup_end_'   + dep.target_task_id);
+        if (si) si.value = newStart; if (ei) ei.value = newEnd;
+        await supabaseClient.from('tasks').update({ start_date: newStart||null, end_date: newEnd||null }).eq('id', dep.target_task_id);
+        // Recursively cascade from this task
+        if (oldEnd && newEnd) await cascadeShift(dep.target_task_id, deltaDays, visited);
+    }
+}
 
-        const taskIds = (tasks || []).map(t => t.id);
-        let deps = [];
-        if (taskIds.length > 0) {
-            const { data: d } = await supabaseClient.from('task_dependencies').select('*').in('target_task_id', taskIds);
-            deps = d || [];
-        }
+// ── GANTT CHART ──────────────────────────────────────────────────
 
-        // Build UUID → task_label map so we can show parent_label text in the grid
-        const uuidToLabel = {};
-        (tasks || []).forEach(t => { uuidToLabel[t.id] = t.task_label || ''; });
+function renderGanttChart(containerId) {
+    const missingMap = { ganttContainer: 'ganttMissingDates', supGanttChart: 'supGanttMissing', userGanttChart: 'userGanttMissing' };
+    const container = document.getElementById(containerId);
+    const missingEl = document.getElementById(missingMap[containerId]);
 
-        gridRows = (tasks || []).map(t => {
-            const row = newRowObject(t);
-            row.parent_label = t.parent_id ? (uuidToLabel[t.parent_id] || '') : '';
-            return row;
-        });
+    const withDates    = gridRows.filter(r => r.dbId && r.start_date && r.end_date && r.title);
+    const withoutDates = gridRows.filter(r => r.dbId && r.title && (!r.start_date || !r.end_date));
 
-        if (gridRows.length === 0) addBlankRow(3);
-        else renderGrid();
-
-        depRows = deps.map(d => newDepRowObject(d));
-        renderDependencyGrid();
-
-        document.getElementById('saveStatus').innerText    = '';
-        document.getElementById('depSaveStatus').innerText = '';
-        renderGanttChart();
+    if (withDates.length === 0) {
+        container.innerHTML = '<p style="color:var(--secondary);padding:20px;text-align:center;">No tasks with both Start and End Date yet.</p>';
+        if (missingEl) missingEl.innerHTML = ''; return;
     }
 
-    // ── GANTT CHART ─────────────────────────────────────────────────────────────
+    const starts   = withDates.map(t => new Date(t.start_date).getTime());
+    const ends     = withDates.map(t => new Date(t.end_date).getTime());
+    const minDate  = new Date(Math.min(...starts));
+    const maxDate  = new Date(Math.max(...ends));
+    const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / 86400000));
+    const pxPerDay  = totalDays > 120 ? 4 : totalDays > 60 ? 7 : totalDays > 30 ? 12 : 20;
+    const labelWidth = 260, rowH = 34, headerH = 30;
+    const chartW = Math.max(700, labelWidth + totalDays * pxPerDay + 200);
+    const chartH = headerH + withDates.length * rowH + 10;
 
-    function renderGanttChart() {
-        const container = document.getElementById('ganttContainer');
-        const missingEl = document.getElementById('ganttMissingDates');
+    function dayX(ds) { return labelWidth + Math.round((new Date(ds) - minDate) / 86400000) * pxPerDay; }
 
-        const withDates    = gridRows.filter(r => r.dbId && r.start_date && r.end_date && r.title);
-        const withoutDates = gridRows.filter(r => r.dbId && r.title && (!r.start_date || !r.end_date));
-
-        if (withDates.length === 0) {
-            container.innerHTML = '<p style="color:var(--secondary);padding:20px;text-align:center;">No tasks with both Start and End Date yet.</p>';
-            missingEl.innerHTML = ''; return;
-        }
-
-        const starts    = withDates.map(t => new Date(t.start_date).getTime());
-        const ends      = withDates.map(t => new Date(t.end_date).getTime());
-        const minDate   = new Date(Math.min(...starts));
-        const maxDate   = new Date(Math.max(...ends));
-        const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / 86400000));
-
-        const pxPerDay   = totalDays > 120 ? 4 : totalDays > 60 ? 7 : totalDays > 30 ? 12 : 20;
-        const labelWidth = 260;
-        const rowH       = 34;
-        const headerH    = 30;
-        const chartW     = Math.max(700, labelWidth + totalDays * pxPerDay + 20);
-        const chartH     = headerH + withDates.length * rowH + 10;
-
-        function dayX(ds) { return labelWidth + Math.round((new Date(ds) - minDate) / 86400000) * pxPerDay; }
-
-        // Header gridlines
-        let header = '';
-        const interval = totalDays > 120 ? 30 : totalDays > 30 ? 14 : 7;
-        for (let d = 0; d <= totalDays; d += interval) {
-            const x   = labelWidth + d * pxPerDay;
-            const lbl = new Date(minDate.getTime() + d * 86400000).toLocaleDateString(undefined, { month:'short', day:'numeric' });
-            header += `<line x1="${x}" y1="0" x2="${x}" y2="${chartH}" stroke="#E2E8F0" stroke-width="1"/>`;
-            header += `<text x="${x+3}" y="18" font-size="10" fill="#718096">${lbl}</text>`;
-        }
-
-        // Bars and labels
-        let bars = '', labels = '';
-        withDates.forEach((task, idx) => {
-            const y   = headerH + idx * rowH;
-            const x1  = dayX(task.start_date);
-            const x2  = Math.max(x1 + 4, dayX(task.end_date));
-            const w   = x2 - x1;
-            const pct = (task.progress !== '' && task.progress !== null) ? Math.min(100, Number(task.progress)) : 0;
-            const fillW = Math.round(w * pct / 100);
-            const color = pct >= 100 ? '#38A169' : (task.type === 'Milestone' ? '#805AD5' : task.type === 'Inspection' ? '#DD6B20' : '#3182CE');
-            const lbl   = (task.task_label ? task.task_label + ' — ' : '') + task.title;
-
-            if (idx % 2 === 0) bars += `<rect x="0" y="${y}" width="${chartW}" height="${rowH}" fill="#F7FAFC" opacity="0.5"/>`;
-            bars += `<rect x="${x1}" y="${y+5}" width="${w}" height="${rowH-10}" rx="3" fill="${color}" opacity="0.85"/>`;
-            if (fillW > 0) bars += `<rect x="${x1}" y="${y+5}" width="${fillW}" height="${rowH-10}" rx="3" fill="rgba(0,0,0,0.2)"/>`;
-            if (pct > 0 && w > 50) bars += `<text x="${x1+w/2}" y="${y+rowH/2+4}" font-size="9" fill="white" text-anchor="middle" opacity="0.85">${pct}%</text>`;
-            // Start date label (left of bar)
-            const startLbl = new Date(task.start_date).toLocaleDateString(undefined, { month:'short', day:'numeric' });
-            bars += `<text x="${x1 - 3}" y="${y+rowH/2+4}" font-size="10" fill="#2D3748" text-anchor="end">${startLbl}</text>`;
-            // End date label (right of bar)
-            const endLbl = new Date(task.end_date).toLocaleDateString(undefined, { month:'short', day:'numeric' });
-            bars += `<text x="${x2 + 3}" y="${y+rowH/2+4}" font-size="10" fill="#2D3748" text-anchor="start">${endLbl}</text>`;
-            labels += `<text x="${labelWidth-6}" y="${y+rowH/2+4}" font-size="11" fill="#1B365D" text-anchor="end" font-weight="600"><title>${ea(lbl)}</title>${ea(lbl.length > 30 ? lbl.slice(0,29)+'…' : lbl)}</text>`;
-        });
-
-        // Dependency arrows
-        let arrows = '';
-        depRows.filter(d => d.source_task_id && d.target_task_id).forEach(dep => {
-            const si = withDates.findIndex(t => t.dbId === dep.source_task_id);
-            const ti = withDates.findIndex(t => t.dbId === dep.target_task_id);
-            if (si === -1 || ti === -1) return;
-            const x1 = dayX(withDates[si].end_date),   y1 = headerH + si * rowH + rowH / 2;
-            const x2 = dayX(withDates[ti].start_date),  y2 = headerH + ti * rowH + rowH / 2;
-            arrows += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#718096" stroke-width="1.5" stroke-dasharray="4,3"/>
-                       <polygon points="${x2},${y2} ${x2-6},${y2-4} ${x2-6},${y2+4}" fill="#718096"/>`;
-        });
-
-        container.innerHTML = `<svg width="${chartW}" height="${chartH}" style="font-family:'Segoe UI',sans-serif;display:block;">
-            ${header}
-            <line x1="${labelWidth}" y1="0" x2="${labelWidth}" y2="${chartH}" stroke="#CBD5E0" stroke-width="1.5"/>
-            ${bars}${labels}${arrows}
-        </svg>`;
-
-        missingEl.innerHTML = withoutDates.length > 0
-            ? `<strong>${withoutDates.length} task(s) not shown</strong> (missing dates): ` + withoutDates.map(t => ea(t.task_label||t.title)).join(', ')
-            : '';
+    let header = '';
+    const interval = totalDays > 120 ? 30 : totalDays > 30 ? 14 : 7;
+    for (let d = 0; d <= totalDays; d += interval) {
+        const x = labelWidth + d * pxPerDay;
+        const lbl = new Date(minDate.getTime() + d * 86400000).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+        header += `<line x1="${x}" y1="0" x2="${x}" y2="${chartH}" stroke="#E2E8F0" stroke-width="1"/>`;
+        header += `<text x="${x+3}" y="18" font-size="10" fill="#718096">${lbl}</text>`;
     }
 
-    addBlankRow(3);
-    // Auto-connect on page load
-    initializeSupabase();
+    let bars = '', labels = '';
+    withDates.forEach((task, idx) => {
+        const y  = headerH + idx * rowH;
+        const x1 = dayX(task.start_date);
+        const x2 = Math.max(x1 + 4, dayX(task.end_date));
+        const w  = x2 - x1;
+        const pct = (task.progress !== '' && task.progress !== null) ? Math.min(100, Number(task.progress)) : 0;
+        const fillW = Math.round(w * pct / 100);
+        const color = pct >= 100 ? '#38A169' : (task.type === 'Milestone' ? '#805AD5' : task.type === 'Inspection' ? '#DD6B20' : '#3182CE');
+        const lbl = (task.task_label ? task.task_label + ' — ' : '') + task.title;
+
+        if (idx % 2 === 0) bars += `<rect x="0" y="${y}" width="${chartW}" height="${rowH}" fill="#F7FAFC" opacity="0.5"/>`;
+        bars += `<rect x="${x1}" y="${y+5}" width="${w}" height="${rowH-10}" rx="3" fill="${color}" opacity="0.85"/>`;
+        if (fillW > 0) bars += `<rect x="${x1}" y="${y+5}" width="${fillW}" height="${rowH-10}" rx="3" fill="rgba(0,0,0,0.2)"/>`;
+        if (pct > 0 && w > 50) bars += `<text x="${x1+w/2}" y="${y+rowH/2+4}" font-size="9" fill="white" text-anchor="middle" opacity="0.9">${pct}%</text>`;
+
+        const startLbl = new Date(task.start_date).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+        const endLbl   = new Date(task.end_date).toLocaleDateString(undefined,   { month:'short', day:'numeric' });
+        bars += `<text x="${x1-3}" y="${y+rowH/2+4}" font-size="10" fill="#2D3748" text-anchor="end">${startLbl}</text>`;
+        bars += `<text x="${x2+3}" y="${y+rowH/2+4}" font-size="10" fill="#2D3748" text-anchor="start">${endLbl}</text>`;
+
+        labels += `<text x="${labelWidth-6}" y="${y+rowH/2+4}" font-size="11" fill="#1B365D" text-anchor="end" font-weight="600"><title>${ea(lbl)}</title>${ea(lbl.length>30?lbl.slice(0,29)+'…':lbl)}</text>`;
+    });
+
+    let arrows = '';
+    allDependencies.filter(d => d.source_task_id && d.target_task_id).forEach(dep => {
+        const si = withDates.findIndex(t => t.dbId === dep.source_task_id);
+        const ti = withDates.findIndex(t => t.dbId === dep.target_task_id);
+        if (si === -1 || ti === -1) return;
+        const x1 = dayX(withDates[si].end_date),   y1 = headerH + si * rowH + rowH/2;
+        const x2 = dayX(withDates[ti].start_date),  y2 = headerH + ti * rowH + rowH/2;
+        arrows += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#718096" stroke-width="1.5" stroke-dasharray="4,3"/>
+                   <polygon points="${x2},${y2} ${x2-6},${y2-4} ${x2-6},${y2+4}" fill="#718096"/>`;
+    });
+
+    container.innerHTML = `<svg width="${chartW}" height="${chartH}" style="font-family:'Segoe UI',sans-serif;display:block;">
+        ${header}
+        <line x1="${labelWidth}" y1="0" x2="${labelWidth}" y2="${chartH}" stroke="#CBD5E0" stroke-width="1.5"/>
+        ${bars}${labels}${arrows}
+    </svg>`;
+
+    if (missingEl) missingEl.innerHTML = withoutDates.length > 0
+        ? `<strong>${withoutDates.length} task(s) not shown</strong> (missing dates): ` + withoutDates.map(t => ea(t.task_label||t.title)).join(', ')
+        : '';
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+checkSession();
 </script>
 </body>
 </html>
