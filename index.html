@@ -827,7 +827,13 @@
             if (idx % 2 === 0) bars += `<rect x="0" y="${y}" width="${chartW}" height="${rowH}" fill="#F7FAFC" opacity="0.5"/>`;
             bars += `<rect x="${x1}" y="${y+5}" width="${w}" height="${rowH-10}" rx="3" fill="${color}" opacity="0.85"/>`;
             if (fillW > 0) bars += `<rect x="${x1}" y="${y+5}" width="${fillW}" height="${rowH-10}" rx="3" fill="rgba(0,0,0,0.2)"/>`;
-            if (pct > 0 && w > 30) bars += `<text x="${x1+w/2}" y="${y+rowH/2+5}" font-size="10" fill="white" text-anchor="middle">${pct}%</text>`;
+            if (pct > 0 && w > 50) bars += `<text x="${x1+w/2}" y="${y+rowH/2+4}" font-size="9" fill="white" text-anchor="middle" opacity="0.85">${pct}%</text>`;
+            // Start date label (left of bar)
+            const startLbl = new Date(task.start_date).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+            bars += `<text x="${x1 - 3}" y="${y+rowH/2+4}" font-size="10" fill="#2D3748" text-anchor="end">${startLbl}</text>`;
+            // End date label (right of bar)
+            const endLbl = new Date(task.end_date).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+            bars += `<text x="${x2 + 3}" y="${y+rowH/2+4}" font-size="10" fill="#2D3748" text-anchor="start">${endLbl}</text>`;
             labels += `<text x="${labelWidth-6}" y="${y+rowH/2+4}" font-size="11" fill="#1B365D" text-anchor="end" font-weight="600"><title>${ea(lbl)}</title>${ea(lbl.length > 30 ? lbl.slice(0,29)+'…' : lbl)}</text>`;
         });
 
