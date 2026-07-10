@@ -1031,9 +1031,7 @@ function renderGanttChart(containerId) {
         ${bars}${labels}${arrows}
     </svg>`;
 
-    if (missingEl) missingEl.innerHTML = withoutDates.length > 0
-        ? `<strong>${withoutDates.length} task(s) not shown</strong> (missing dates): ` + withoutDates.map(t => ea(t.task_label||t.title)).join(', ')
-        : '';
+    if (missingEl) missingEl.innerHTML = '';
 }
 
 // ── INIT ─────────────────────────────────────────────────────────
