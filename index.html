@@ -306,6 +306,36 @@
             </div>
 
             <div class="card">
+                <h2>🔗 Task Assignments</h2>
+                <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
+                    Assign resources to tasks. Select a task and a resource from the dropdowns, set the allocation %, then save.
+                    Tasks and Resources must be saved first before they appear in the dropdowns.
+                </p>
+                <div class="grid-wrapper">
+                    <table class="task-grid">
+                        <thead><tr>
+                            <th class="row-num">#</th>
+                            <th style="min-width:280px;">Task</th>
+                            <th style="min-width:280px;">Resource / Person</th>
+                            <th style="min-width:110px;">Allocation %</th>
+                            <th class="row-actions">Del</th>
+                        </tr></thead>
+                        <tbody id="assignGridBody"></tbody>
+                    </table>
+                </div>
+                <div class="grid-legend">
+                    <span><span class="legend-swatch" style="background:#F0FFF4;border:1px solid #C6F6D5;"></span>New (unsaved)</span>
+                    <span><span class="legend-swatch" style="background:#FFFFF0;border:1px solid #FEFCBF;"></span>Edited</span>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="addBlankAssignRow()">+ Add Assignment</button>
+                    <button class="btn btn-success" onclick="saveAllAssignments()">Save All Assignments</button>
+                    <button class="btn btn-secondary" onclick="loadAssignments()">Reload from DB</button>
+                    <span class="save-status" id="assignSaveStatus"></span>
+                </div>
+            </div>
+
+            <div class="card">
                 <h2>Gantt Chart (Admin)</h2>
                 <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
                     <button class="btn btn-secondary" onclick="renderGanttChart('ganttContainer')">Generate / Refresh Chart</button>
@@ -433,7 +463,7 @@ async function loadRoleAndStart() {
     document.getElementById('supervisorView').style.display = currentRole === 'supervisor' ? 'block' : 'none';
     document.getElementById('userView').style.display       = currentRole === 'user'       ? 'block' : 'none';
     await fetchExistingProjects();
-    if (currentRole === 'admin') { loadUserManagement(); loadResources(); }
+    if (currentRole === 'admin') { loadUserManagement(); loadResources(); loadAssignments(); }
 }
 
 async function loadUserManagement() {
@@ -914,6 +944,7 @@ async function refreshDataContainers() {
     depRows = deps.map(d => newDepRowObject(d)); renderDependencyGrid();
     if (document.getElementById('saveStatus')) document.getElementById('saveStatus').innerText = '';
     if (document.getElementById('depSaveStatus')) document.getElementById('depSaveStatus').innerText = '';
+    renderAssignGrid();
 }
 
 // ── SUPERVISOR VIEW ──────────────────────────────────────────────
@@ -1203,6 +1234,115 @@ async function notifyAffectedPeople(tasks, field, oldVal, newVal) {
             console.warn('SMS failed for', phone, e);
         }
     }
+}
+
+// ── TASK ASSIGNMENTS ──────────────────────────────────────────────
+
+let assignRows = [];
+let assignRowCounter = 0;
+
+function newAssignRowObject(existing) {
+    assignRowCounter++;
+    return {
+        assignRowId: 'ar' + assignRowCounter,
+        task_id:     existing ? existing.task_id     : '',
+        resource_id: existing ? existing.resource_id : '',
+        allocation:  existing ? existing.allocation  : 100,
+        isNew:   !existing,
+        isDirty: false
+    };
+}
+
+function addBlankAssignRow() {
+    assignRows.push(newAssignRowObject(null));
+    renderAssignGrid();
+}
+
+function updateAssignField(assignRowId, field, value) {
+    const row = assignRows.find(r => r.assignRowId === assignRowId); if (!row) return;
+    row[field] = value; if (!row.isNew) row.isDirty = true;
+}
+
+function removeAssignRow(assignRowId) {
+    const row = assignRows.find(r => r.assignRowId === assignRowId); if (!row) return;
+    if (!row.isNew && !confirm('Remove this assignment permanently?')) return;
+    if (!row.isNew) supabaseClient.from('task_assignments').delete().eq('task_id', row.task_id).eq('resource_id', row.resource_id);
+    assignRows = assignRows.filter(r => r.assignRowId !== assignRowId);
+    renderAssignGrid();
+}
+
+function buildTaskDropdown(selectedId) {
+    let html = '<option value="">-- Select Task --</option>';
+    gridRows.filter(r => r.dbId).forEach(t => {
+        const lbl = (t.task_label ? t.task_label + ' — ' : '') + (t.title || '(untitled)');
+        html += `<option value="${t.dbId}" ${t.dbId === selectedId ? 'selected' : ''}>${ea(lbl)}</option>`;
+    });
+    return html;
+}
+
+function buildResourceDropdown(selectedId) {
+    let html = '<option value="">-- Select Resource --</option>';
+    resRows.filter(r => r.dbId).forEach(r => {
+        const lbl = (r.res_label ? r.res_label + ' — ' : '') + (r.name || '(unnamed)') + (r.type ? ` (${r.type})` : '');
+        html += `<option value="${r.dbId}" ${r.dbId === selectedId ? 'selected' : ''}>${ea(lbl)}</option>`;
+    });
+    return html;
+}
+
+function renderAssignGrid() {
+    const body = document.getElementById('assignGridBody'); if (!body) return;
+    body.innerHTML = '';
+    assignRows.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = row.isNew ? 'new-row' : (row.isDirty ? 'dirty-row' : '');
+        tr.innerHTML = `
+            <td class="row-num">${idx+1}</td>
+            <td><select onchange="updateAssignField('${row.assignRowId}','task_id',this.value)">
+                ${buildTaskDropdown(row.task_id)}
+            </select></td>
+            <td><select onchange="updateAssignField('${row.assignRowId}','resource_id',this.value)">
+                ${buildResourceDropdown(row.resource_id)}
+            </select></td>
+            <td><input type="number" value="${row.allocation}" min="0" max="100" step="1"
+                onchange="updateAssignField('${row.assignRowId}','allocation',parseFloat(this.value)||100)"
+                style="width:80px;padding:6px;"></td>
+            <td class="row-actions"><button onclick="removeAssignRow('${row.assignRowId}')" title="Delete">✕</button></td>`;
+        body.appendChild(tr);
+    });
+}
+
+async function saveAllAssignments() {
+    if (!supabaseClient) return alert('Connect first.');
+    const statusEl = document.getElementById('assignSaveStatus');
+    statusEl.className = 'save-status pending'; statusEl.innerText = 'Saving…';
+    const toSave = assignRows.filter(r => r.task_id && r.resource_id);
+    if (toSave.length === 0) { statusEl.className = 'save-status err'; statusEl.innerText = 'Select a task and resource for each row first.'; return; }
+    let saved = 0;
+    try {
+        for (const row of toSave) {
+            const payload = { task_id: row.task_id, resource_id: row.resource_id, allocation: row.allocation || 100 };
+            if (row.isNew) {
+                const { error } = await supabaseClient.from('task_assignments').upsert([payload], { onConflict: 'task_id,resource_id' });
+                if (error) throw new Error(`Save failed: ${error.message}`);
+                row.isNew = false;
+            } else {
+                const { error } = await supabaseClient.from('task_assignments').update({ allocation: payload.allocation }).eq('task_id', row.task_id).eq('resource_id', row.resource_id);
+                if (error) throw new Error(`Update failed: ${error.message}`);
+            }
+            row.isDirty = false; saved++;
+        }
+        statusEl.className = 'save-status ok'; statusEl.innerText = `Saved ${saved} assignment(s).`;
+        renderAssignGrid();
+    } catch(err) { statusEl.className = 'save-status err'; statusEl.innerText = err.message; }
+}
+
+async function loadAssignments() {
+    if (!supabaseClient) return;
+    const { data, error } = await supabaseClient.from('task_assignments').select('*');
+    if (error) { alert('Could not load assignments: ' + error.message); return; }
+    assignRows = (data||[]).map(a => newAssignRowObject(a));
+    if (assignRows.length === 0) addBlankAssignRow();
+    else renderAssignGrid();
 }
 
 // ── RESOURCES ────────────────────────────────────────────────────
