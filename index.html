@@ -143,6 +143,13 @@
 
     <div id="topBar">
         <h1>🏗 MCH Project Tracker</h1>
+        <div style="flex:1; max-width:350px; margin: 0 20px;">
+            <select id="topbarProjectSelect" onchange="selectExistingProject(this.value)"
+                style="width:100%; padding:7px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.3);
+                background:rgba(255,255,255,0.15); color:white; font-size:14px; font-weight:600; cursor:pointer;">
+                <option value="" style="color:#2D3748;">-- Select a project --</option>
+            </select>
+        </div>
         <div class="topbar-right">
             <span class="role-badge" id="roleBadge"></span>
             <button class="settings-btn" onclick="toggleConfig()">⚙ Connection</button>
@@ -552,12 +559,13 @@ function toggleConfig() {
 
 async function fetchExistingProjects() {
     const { data, error } = await supabaseClient.from('projects').select('*').order('created_at', { ascending: false });
-    const sel = document.getElementById('existingProjectSelect');
+    const sel    = document.getElementById('existingProjectSelect');
+    const topSel = document.getElementById('topbarProjectSelect');
     if (error) { sel.innerHTML = `<option value="">-- Error loading --</option>`; return; }
-    sel.innerHTML = '<option value="">-- Select a project --</option>';
-    (data || []).forEach(p => {
-        const o = document.createElement('option'); o.value = p.id; o.innerText = p.name; sel.appendChild(o);
-    });
+    const opts = '<option value="">-- Select a project --</option>' +
+        (data||[]).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    sel.innerHTML    = opts;
+    topSel.innerHTML = opts;
 }
 
 async function selectExistingProject(id) {
@@ -565,9 +573,11 @@ async function selectExistingProject(id) {
     const { data, error } = await supabaseClient.from('projects').select('*').eq('id', id).single();
     if (error) return alert('Could not load: ' + error.message);
     activeProjectId = data.id;
+    // Keep both dropdowns in sync
+    document.getElementById('existingProjectSelect').value  = id;
+    document.getElementById('topbarProjectSelect').value    = id;
     const banner = document.getElementById('activeProjectBanner');
-    banner.innerText = `Active: ${data.name}`;
-    banner.style.display = 'block';
+    banner.innerText = `Active: ${data.name}`; banner.style.display = 'block';
     if (document.getElementById('projName')) document.getElementById('projName').value = data.name || '';
     if (document.getElementById('projDesc')) document.getElementById('projDesc').value = data.description || '';
     await refreshDataContainers();
