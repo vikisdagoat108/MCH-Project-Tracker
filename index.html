@@ -1129,22 +1129,80 @@ function renderGanttChart(containerId) {
             </svg>
         </div>
         ${(currentRole === 'admin' || currentRole === 'supervisor') ? `
-        <div style="flex-shrink:0;border-left:2px solid var(--border);background:#F7FAFC;min-width:280px;">
+        <div style="flex-shrink:0;border-left:2px solid var(--border);background:#F7FAFC;min-width:280px;display:flex;flex-direction:column;">
             <div style="height:${headerH}px;background:var(--primary);display:flex;align-items:center;padding:0 10px;gap:8px;">
                 <span style="color:white;font-size:11px;font-weight:700;width:120px;">Start Date</span>
                 <span style="color:white;font-size:11px;font-weight:700;width:120px;">End Date</span>
             </div>
+            <div style="flex:1;">
             ${withDates.map(task => `
             <div style="height:${rowH}px;display:flex;align-items:center;padding:0 8px;gap:8px;border-bottom:1px solid var(--border);">
-                <input type="date" value="${task.start_date||''}" style="width:120px;padding:3px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;"
-                    onchange="ganttDateChange('${task.dbId}','start_date',this.value)" title="${ea(task.title)} — Start Date">
-                <input type="date" value="${task.end_date||''}" style="width:120px;padding:3px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;"
-                    onchange="ganttDateChange('${task.dbId}','end_date',this.value)" title="${ea(task.title)} — End Date">
+                <input type="date" value="${task.start_date||''}" id="gd_start_${task.dbId}" style="width:120px;padding:3px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;"
+                    title="${ea(task.title)} — Start Date">
+                <input type="date" value="${task.end_date||''}" id="gd_end_${task.dbId}" style="width:120px;padding:3px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;"
+                    title="${ea(task.title)} — End Date">
             </div>`).join('')}
+            </div>
+            <div style="padding:10px 8px;border-top:2px solid var(--border);background:#F7FAFC;position:sticky;bottom:0;">
+                <button onclick="saveDatePanel('${containerId}')" style="width:100%;padding:10px;background:var(--success);color:white;border:none;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer;">
+                    💾 Save All Date Changes
+                </button>
+                <div id="datePanelStatus_${containerId}" style="font-size:12px;font-weight:600;text-align:center;margin-top:6px;min-height:16px;"></div>
+            </div>
         </div>` : ''}
     </div>`;
 
     if (missingEl) missingEl.innerHTML = '';
+}
+
+async function saveDatePanel(containerId) {
+    const statusEl = document.getElementById('datePanelStatus_' + containerId);
+    statusEl.style.color = 'var(--secondary)'; statusEl.innerText = 'Saving…';
+
+    const withDates = gridRows.filter(r => r.dbId && r.start_date && r.end_date && r.title);
+    let changed = 0;
+
+    for (const task of withDates) {
+        const startInput = document.getElementById('gd_start_' + task.dbId);
+        const endInput   = document.getElementById('gd_end_'   + task.dbId);
+        if (!startInput || !endInput) continue;
+
+        const newStart = startInput.value;
+        const newEnd   = endInput.value;
+        const oldEnd   = task.end_date;
+
+        if (newStart === (task.start_date||'') && newEnd === (task.end_date||'')) continue;
+
+        task.start_date = newStart;
+        const { error } = await supabaseClient.from('tasks').update({
+            start_date: newStart || null,
+            end_date:   newEnd   || null
+        }).eq('id', task.dbId);
+
+        if (error) { statusEl.style.color = 'var(--danger)'; statusEl.innerText = 'Error: ' + error.message; return; }
+
+        // Cascade if end date changed
+        if (newEnd !== oldEnd && oldEnd && newEnd) {
+            const delta = Math.round((new Date(newEnd) - new Date(oldEnd)) / 86400000);
+            if (delta !== 0) await cascadeShift(task.dbId, delta, new Set([task.dbId]));
+        }
+        task.end_date = newEnd;
+        changed++;
+    }
+
+    if (changed === 0) {
+        statusEl.style.color = 'var(--secondary)'; statusEl.innerText = 'No changes to save.';
+        return;
+    }
+
+    statusEl.style.color = 'var(--success)'; statusEl.innerText = `✓ Saved ${changed} change(s).`;
+
+    // Re-render the chart
+    ['ganttContainer','supGanttChart','userGanttChart'].forEach(id => {
+        if (document.getElementById(id) && document.getElementById(id).innerHTML.includes('<svg')) {
+            renderGanttChart(id);
+        }
+    });
 }
 
 async function ganttDateChange(dbId, field, newVal) {
