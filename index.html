@@ -1177,9 +1177,17 @@ function renderGanttChart(containerId) {
     const maxDate  = new Date(Math.max(...ends));
     const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / 86400000));
     const pxPerDay  = totalDays > 120 ? 4 : totalDays > 60 ? 7 : totalDays > 30 ? 12 : 20;
-    const labelWidth = 320, rowH = 34, headerH = 30;
+    const labelWidth = 320, rowH = 48, headerH = 30;
     const chartW = Math.max(700, labelWidth + totalDays * pxPerDay + 220);
     const chartH = headerH + withDates.length * rowH + 10;
+
+    // Build a task dbId → resource info lookup from assignRows + resRows
+    const taskResourceMap = {};
+    assignRows.forEach(a => {
+        if (!a.task_id || !a.resource_id) return;
+        const res = resRows.find(r => r.dbId === a.resource_id);
+        if (res) taskResourceMap[a.task_id] = { name: res.name || '', phone: res.phone || '' };
+    });
 
     function dayX(ds) { return labelWidth + Math.round((new Date(ds) - minDate) / 86400000) * pxPerDay; }
 
@@ -1218,7 +1226,14 @@ function renderGanttChart(containerId) {
         bars += `<rect x="${x2 + 4}" y="${y+7}" width="50" height="16" rx="3" fill="#F0FFF4" opacity="0.9"/>`;
         bars += `<text x="${x2 + 6}" y="${y+rowH/2+3}" font-size="10" fill="#276749" text-anchor="start" font-weight="600">${endLbl}</text>`;
 
-        labels += `<text x="${labelWidth-6}" y="${y+rowH/2+4}" font-size="11" fill="#1B365D" text-anchor="end" font-weight="600"><title>${ea(lbl)}</title>${ea(lbl.length>30?lbl.slice(0,29)+'…':lbl)}</text>`;
+        labels += `<text x="${labelWidth-6}" y="${y+rowH/2}" font-size="11" fill="#1B365D" text-anchor="end" font-weight="600"><title>${ea(lbl)}</title>${ea(lbl.length>30?lbl.slice(0,29)+'…':lbl)}</text>`;
+
+        // Resource name and phone below task label
+        const resInfo = taskResourceMap[task.dbId];
+        if (resInfo && (resInfo.name || resInfo.phone)) {
+            const resLine = [resInfo.name, resInfo.phone].filter(Boolean).join(' · ');
+            labels += `<text x="${labelWidth-6}" y="${y+rowH/2+13}" font-size="9" fill="#718096" text-anchor="end">${ea(resLine.length>38?resLine.slice(0,37)+'…':resLine)}</text>`;
+        }
         // Assigned to label — shown inside or below the bar
         if (task.assigned_to && task.assigned_to.trim()) {
             bars += `<text x="${x1 + w/2}" y="${y+rowH-2}" font-size="9" fill="white" text-anchor="middle" opacity="0.9">👤 ${ea(task.assigned_to)}</text>`;
