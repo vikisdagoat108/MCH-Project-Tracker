@@ -178,9 +178,13 @@
             <h2>Select Project</h2>
             <div class="form-group">
                 <label>Project</label>
-                <select id="existingProjectSelect" onchange="selectExistingProject(this.value)">
-                    <option value="">-- Select a project --</option>
-                </select>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <select id="existingProjectSelect" onchange="selectExistingProject(this.value)" style="flex:1;">
+                        <option value="">-- Select a project --</option>
+                    </select>
+                    <button class="btn btn-secondary" style="padding:9px 16px;font-size:13px;white-space:nowrap;" onclick="renameProject()">✏️ Rename</button>
+                    <button class="btn btn-danger"   style="padding:9px 16px;font-size:13px;white-space:nowrap;" onclick="deleteProject()">🗑 Delete</button>
+                </div>
             </div>
             <div id="activeProjectBanner" class="status-banner" style="color:var(--secondary);display:none;"></div>
         </div>
@@ -562,6 +566,34 @@ function toggleConfig() {
 }
 
 // ── PROJECTS ─────────────────────────────────────────────────────
+
+async function renameProject() {
+    if (!activeProjectId) return alert('Select a project first.');
+    const currentName = document.getElementById('existingProjectSelect').options[document.getElementById('existingProjectSelect').selectedIndex].text;
+    const newName = prompt('Enter a new name for this project:', currentName);
+    if (!newName || !newName.trim() || newName.trim() === currentName) return;
+    const { error } = await supabaseClient.from('projects').update({ name: newName.trim() }).eq('id', activeProjectId);
+    if (error) return alert('Could not rename: ' + error.message);
+    document.getElementById('activeProjectBanner').innerText = `Active: ${newName.trim()}`;
+    await fetchExistingProjects();
+    document.getElementById('existingProjectSelect').value = activeProjectId;
+    document.getElementById('topbarProjectSelect').value   = activeProjectId;
+}
+
+async function deleteProject() {
+    if (!activeProjectId) return alert('Select a project first.');
+    const currentName = document.getElementById('existingProjectSelect').options[document.getElementById('existingProjectSelect').selectedIndex].text;
+    if (!confirm(`Delete "${currentName}" and ALL its tasks and dependencies permanently? This cannot be undone.`)) return;
+    const { error } = await supabaseClient.from('projects').delete().eq('id', activeProjectId);
+    if (error) return alert('Could not delete: ' + error.message);
+    activeProjectId = null;
+    gridRows = []; depRows = [];
+    document.getElementById('activeProjectBanner').style.display = 'none';
+    document.getElementById('existingProjectSelect').value = '';
+    document.getElementById('topbarProjectSelect').value   = '';
+    await fetchExistingProjects();
+    renderGrid(); renderDependencyGrid();
+}
 
 async function fetchExistingProjects() {
     const { data, error } = await supabaseClient.from('projects').select('*').order('created_at', { ascending: false });
@@ -1678,4 +1710,4 @@ async function loadResources() {
 checkSession();
 </script>
 </body>
-</html> 
+</html>
