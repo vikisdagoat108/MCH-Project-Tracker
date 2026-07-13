@@ -1285,9 +1285,9 @@ function renderGanttChart(containerId) {
             <div style="flex:1;">
             ${withDates.map(task => `
             <div style="height:${rowH}px;display:flex;align-items:center;padding:0 8px;gap:8px;border-bottom:1px solid var(--border);">
-                <input type="date" value="${task.start_date||''}" id="gd_start_${task.dbId}" style="width:120px;padding:3px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;"
+                <input type="date" value="${task.start_date||''}" id="gd_start_${task.dbId}" data-original="${task.start_date||''}" style="width:120px;padding:3px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;"
                     title="${ea(task.title)} — Start Date">
-                <input type="date" value="${task.end_date||''}" id="gd_end_${task.dbId}" style="width:120px;padding:3px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;"
+                <input type="date" value="${task.end_date||''}" id="gd_end_${task.dbId}" data-original="${task.end_date||''}" style="width:120px;padding:3px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;"
                     title="${ea(task.title)} — End Date">
             </div>`).join('')}
             </div>
@@ -1316,22 +1316,29 @@ async function saveDatePanel(containerId) {
     for (const task of allTasks) {
         const startInput = document.getElementById('gd_start_' + task.dbId);
         if (!startInput) continue;
-        if (startInput.value && startInput.value !== (task.start_date || '')) {
+        const inputVal    = startInput.value || '';
+        const originalVal = startInput.getAttribute('data-original') || '';
+        if (inputVal !== originalVal && inputVal !== '') {
             changedTask  = task;
-            newStartDate = startInput.value;
+            newStartDate = inputVal;
             break;
         }
     }
 
-    if (!changedTask || !newStartDate || !changedTask.start_date) {
-        statusEl.style.color = 'var(--secondary)'; statusEl.innerText = 'No changes detected.';
+    if (!changedTask || !newStartDate) {
+        statusEl.style.color = 'var(--secondary)';
+        statusEl.innerText = 'No start date changes detected. Edit a start date then click Save.';
         return;
+    }
+    const originalStart = changedTask.start_date || document.getElementById('gd_start_' + changedTask.dbId).getAttribute('data-original');
+    if (!originalStart) {
+        await supabaseClient.from('tasks').update({ start_date: newStartDate }).eq('id', changedTask.dbId);
+        statusEl.style.color = 'var(--success)'; statusEl.innerText = `✓ Saved.`;
+        await refreshDataContainers(); return;
     }
 
     statusEl.innerText = 'Cascading…';
-
-    // Calculate how many days the start shifted
-    const deltaDays = Math.round((new Date(newStartDate) - new Date(changedTask.start_date)) / 86400000);
+    const deltaDays = Math.round((new Date(newStartDate) - new Date(originalStart)) / 86400000);
     if (deltaDays === 0) { statusEl.innerText = 'No change.'; return; }
 
     // Fetch fresh dependencies from DB to ensure we have the full picture
