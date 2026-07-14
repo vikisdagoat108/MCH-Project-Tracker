@@ -22,33 +22,7 @@
             position: relative; flex-direction: column; gap: 16px;
         }
 
-        /* ── MOBILE VIEW ────────────────────────────────────────── */
-        .mobile-toggle-btn {
-            position: fixed; bottom: 20px; right: 20px; z-index: 9999;
-            background: var(--primary); color: white; border: none;
-            padding: 12px 18px; border-radius: 50px; font-size: 14px; font-weight: bold;
-            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            display: flex; align-items: center; gap: 8px;
-        }
-        .mobile-toggle-btn:hover { background: var(--accent); }
-
-        body.mobile-view .container { max-width: 100%; padding: 10px; }
-        body.mobile-view .card { padding: 15px; margin-bottom: 16px; }
-        body.mobile-view h2 { font-size: 16px; }
-        body.mobile-view .btn { padding: 10px 14px; font-size: 13px; }
-        body.mobile-view .btn-row { gap: 6px; }
-        body.mobile-view table.task-grid { font-size: 12px; min-width: unset; }
-        body.mobile-view table.task-grid th, body.mobile-view table.task-grid td input { font-size: 11px; padding: 5px 4px; }
-        body.mobile-view #topBar h1 { font-size: 14px; }
-        body.mobile-view #topBar { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
-        body.mobile-view #topbarProjectSelect { font-size: 13px; }
-        body.mobile-view .config-box { flex-direction: column; }
-        body.mobile-view .login-card { width: 95%; padding: 24px 18px; }
-        body.mobile-view .grid-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        body.mobile-view .gantt-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        body.mobile-view .topbar-right { gap: 8px; }
-        body.mobile-view .role-badge { font-size: 11px; padding: 3px 8px; }
-        body.mobile-view .logout-btn, body.mobile-view .settings-btn { font-size: 11px; padding: 5px 10px; }
+        
         #loginScreen::before {
             content: ''; position: absolute; inset: 0;
             background: rgba(0, 0, 0, 0.45);
@@ -135,8 +109,85 @@
         .sup-gantt-dates input:focus { outline: 2px solid var(--supervisor); }
         .sup-gantt-header { display: flex; gap: 12px; padding: 0 0 6px; border-bottom: 2px solid var(--border); font-size: 11px; font-weight: 700; color: var(--secondary); text-transform: uppercase; }
 
-        /* config box hidden by default */
-        #configBox { display: none; }
+        /* ── MOBILE VIEW ──────────────────────────────────────────── */
+        .mob-toggle-btn {
+            position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+            background: var(--primary); color: white; border: none;
+            padding: 12px 18px; border-radius: 50px; font-size: 14px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Mobile nav home screen */
+        #mobileHome {
+            display: none; padding: 20px; max-width: 500px; margin: 0 auto;
+        }
+        #mobileHome h2 { color: var(--primary); margin-bottom: 20px; text-align: center; }
+        .mob-nav-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;
+        }
+        .mob-nav-btn {
+            background: white; border: 2px solid var(--border); border-radius: 12px;
+            padding: 18px 12px; text-align: center; cursor: pointer;
+            font-size: 14px; font-weight: 600; color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s;
+        }
+        .mob-nav-btn:hover, .mob-nav-btn:active { background: #EBF8FF; border-color: var(--accent); }
+        .mob-nav-btn .mob-icon { font-size: 28px; display: block; margin-bottom: 8px; }
+
+        /* Mobile section view */
+        #mobileSection { display: none; padding: 12px; }
+        .mob-section-header {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--primary); color: white;
+            padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
+        }
+        .mob-back-btn {
+            background: rgba(255,255,255,0.2); color: white; border: none;
+            padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;
+        }
+        .mob-section-title { font-size: 15px; font-weight: bold; flex: 1; }
+        .mob-nav-select {
+            padding: 6px 10px; border-radius: 6px; border: none;
+            background: rgba(255,255,255,0.15); color: white; font-size: 13px;
+            cursor: pointer;
+        }
+        .mob-nav-select option { background: var(--primary); color: white; }
+
+        /* Hide desktop cards in mobile section view — only show the active section */
+        body.mobile-view #adminView .card,
+        body.mobile-view #supervisorView .card,
+        body.mobile-view #userView .card { display: none !important; }
+        body.mobile-view .card.mob-active { display: block !important; }
+        body.mobile-view .card { margin-bottom: 12px; padding: 15px; }
+        body.mobile-view .grid-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        body.mobile-view .gantt-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        body.mobile-view .btn { padding: 10px 14px; font-size: 13px; }
+        body.mobile-view .btn-row { gap: 6px; flex-wrap: wrap; }
+        body.mobile-view h2 { font-size: 16px; }
+        body.mobile-view table.task-grid { font-size: 11px; }
+        body.mobile-view table.task-grid th,
+        body.mobile-view table.task-grid td input,
+        body.mobile-view table.task-grid td select { font-size: 11px; padding: 5px 4px; }
+
+        /* In mobile view, hide desktop top bar and show mobile header instead */
+        body.mobile-view #topBar { display: none; }
+        #mobileTopBar {
+            display: none; background: var(--primary); color: white;
+            padding: 12px 16px; position: sticky; top: 0; z-index: 100;
+            align-items: center; justify-content: space-between;
+        }
+        body.mobile-view #mobileTopBar { display: flex; }
+        #mobileTopBar h1 { font-size: 15px; margin: 0; }
+        .mob-header-right { display: flex; gap: 8px; align-items: center; }
+        .mob-signout-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        body.mobile-view .select-project-card { display: block !important; }
+
+        /* In mobile, hide main content and show mobile home instead */
+        body.mobile-view #adminView,
+        body.mobile-view #supervisorView,
+        body.mobile-view #userView { display: block !important; }
+        body.mobile-view .select-project-section { display: block; }
+        /* ── END MOBILE ────────────────────────────────────────────── */
     </style>
 </head>
 <body>
@@ -170,10 +221,49 @@
         </div>
 
     </div>
-    <button class="mobile-toggle-btn" onclick="toggleMobileView()" id="loginMobileBtn">📱 Mobile View</button>
 </div>
+<button class="mob-toggle-btn" onclick="toggleMobileView()" id="loginMobBtn" style="display:none;">📱 Mobile View</button>
+
 <div id="mainApp" style="display:none;">
-    <button class="mobile-toggle-btn" onclick="toggleMobileView()" id="appMobileBtn">📱 Mobile View</button>
+
+    <!-- Mobile top bar (only shows in mobile view) -->
+    <div id="mobileTopBar">
+        <h1>🏗 MCH</h1>
+        <div class="mob-header-right">
+            <span class="role-badge" id="mobRoleBadge" style="font-size:11px;"></span>
+            <button class="mob-signout-btn" onclick="doLogout()">Sign Out</button>
+        </div>
+    </div>
+
+    <!-- Mobile home screen (nav buttons) -->
+    <div id="mobileHome">
+        <div class="card" style="margin-bottom:16px;">
+            <label style="font-weight:600;font-size:14px;">Project</label>
+            <select id="mobProjectSelect" onchange="selectExistingProject(this.value)" style="width:100%;margin-top:6px;">
+                <option value="">-- Select a project --</option>
+            </select>
+            <div id="mobActiveBanner" style="margin-top:8px;font-size:13px;color:var(--success);font-weight:600;display:none;"></div>
+        </div>
+        <h2 style="color:var(--primary);text-align:center;margin-bottom:16px;">What would you like to do?</h2>
+        <div class="mob-nav-grid" id="mobNavGrid">
+            <!-- populated by JS based on role -->
+        </div>
+    </div>
+
+    <!-- Mobile section view -->
+    <div id="mobileSection">
+        <div class="mob-section-header">
+            <button class="mob-back-btn" onclick="showMobileHome()">← Back</button>
+            <span class="mob-section-title" id="mobSectionTitle">Section</span>
+            <select class="mob-nav-select" id="mobNavDropdown" onchange="navigateMobileSection(this.value)">
+                <!-- populated by JS -->
+            </select>
+        </div>
+        <div id="mobSectionContent"></div>
+    </div>
+
+    <button class="mob-toggle-btn" onclick="toggleMobileView()" id="appMobBtn">🖥 Desktop</button>
+
     <div id="topBar">
         <h1>🏗 MCH Project Tracker</h1>
         <div style="flex:1; max-width:350px; margin: 0 20px;">
@@ -517,6 +607,7 @@ async function loadRoleAndStart() {
     document.getElementById('userView').style.display       = currentRole === 'user'       ? 'block' : 'none';
     await fetchExistingProjects();
     if (currentRole === 'admin') { loadUserManagement(); loadResources(); loadAssignments(); }
+    if (isMobileView) applyMobileView();
 }
 
 async function loadUserManagement() {
@@ -1885,35 +1976,160 @@ async function loadResources() {
     else renderResGrid();
 }
 
-// ── MOBILE VIEW ──────────────────────────────────────────────────
+// ── INIT ────────────────────────────────────────────────────────
+checkSession();
+
+// ── MOBILE SYSTEM ────────────────────────────────────────────────
+
+const MOB_SECTIONS = {
+    admin: [
+        { id: 'gantt',       icon: '📊', label: 'Gantt Chart'      },
+        { id: 'taskgrid',    icon: '📋', label: 'Task Grid'         },
+        { id: 'import',      icon: '📥', label: 'Import Tasks'      },
+        { id: 'deps',        icon: '🔗', label: 'Dependencies'      },
+        { id: 'importdeps',  icon: '📤', label: 'Import Deps'       },
+        { id: 'resources',   icon: '👷', label: 'Resources'         },
+        { id: 'assignments', icon: '📌', label: 'Assignments'       },
+        { id: 'users',       icon: '👥', label: 'Manage Users'      },
+        { id: 'newproject',  icon: '➕', label: 'New Project'       },
+    ],
+    supervisor: [
+        { id: 'gantt',    icon: '📊', label: 'Gantt Chart'      },
+        { id: 'schedule', icon: '📅', label: 'Schedule Editor'  },
+    ],
+    user: [
+        { id: 'gantt', icon: '📊', label: 'Gantt Chart' },
+    ]
+};
+
+// Map section id → card selector within the correct view
+const MOB_CARD_MAP = {
+    admin: {
+        gantt:       '#adminView .card:nth-child(9)',
+        taskgrid:    '#adminView .card:nth-child(4)',
+        import:      '#adminView .card:nth-child(3)',
+        deps:        '#adminView .card:nth-child(6)',
+        importdeps:  '#adminView .card:nth-child(5)',
+        resources:   '#adminView .card:nth-child(7)',
+        assignments: '#adminView .card:nth-child(8)',
+        users:       '#adminView .card:nth-child(1)',
+        newproject:  '#adminView .card:nth-child(2)',
+    },
+    supervisor: {
+        schedule: '#supervisorView .card:nth-child(1)',
+        gantt:    '#supervisorView .card:nth-child(2)',
+    },
+    user: {
+        gantt: '#userView .card:nth-child(1)',
+    }
+};
+
+let isMobileView = false;
 
 function toggleMobileView() {
-    const isMobile = document.body.classList.toggle('mobile-view');
-    localStorage.setItem('mchMobileView', isMobile ? '1' : '0');
-    const label = isMobile ? '🖥 Desktop View' : '📱 Mobile View';
-    ['loginMobileBtn','appMobileBtn'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) btn.innerText = label;
-    });
+    isMobileView = !isMobileView;
+    localStorage.setItem('mchMobile', isMobileView ? '1' : '0');
+    applyMobileView();
 }
 
-function initMobileView() {
-    // Auto-enable mobile if on a small screen
-    const autoMobile = window.innerWidth < 768;
-    const stored = localStorage.getItem('mchMobileView');
-    const shouldMobile = stored !== null ? stored === '1' : autoMobile;
-    if (shouldMobile) {
-        document.body.classList.add('mobile-view');
-        ['loginMobileBtn','appMobileBtn'].forEach(id => {
-            const btn = document.getElementById(id);
-            if (btn) btn.innerText = '🖥 Desktop View';
-        });
+function applyMobileView() {
+    document.body.classList.toggle('mobile-view', isMobileView);
+    const loginBtn = document.getElementById('loginMobBtn');
+    const appBtn   = document.getElementById('appMobBtn');
+    if (loginBtn) { loginBtn.style.display = 'block'; loginBtn.innerText = isMobileView ? '🖥 Desktop View' : '📱 Mobile View'; }
+    if (appBtn)   appBtn.innerText = isMobileView ? '🖥 Desktop' : '📱 Mobile';
+
+    if (isMobileView && currentRole) {
+        document.getElementById('adminView').style.display      = 'none';
+        document.getElementById('supervisorView').style.display = 'none';
+        document.getElementById('userView').style.display       = 'none';
+        document.getElementById('mobileHome').style.display     = 'block';
+        document.getElementById('mobileSection').style.display  = 'none';
+        syncMobProjectDropdown();
+        buildMobNav();
+        const badge = document.getElementById('mobRoleBadge');
+        if (badge) { badge.innerText = currentRole.charAt(0).toUpperCase()+currentRole.slice(1); badge.className = 'role-badge '+currentRole; }
+    } else if (!isMobileView) {
+        document.getElementById('mobileHome').style.display     = 'none';
+        document.getElementById('mobileSection').style.display  = 'none';
+        document.getElementById('adminView').style.display      = currentRole === 'admin'      ? 'block' : 'none';
+        document.getElementById('supervisorView').style.display = currentRole === 'supervisor' ? 'block' : 'none';
+        document.getElementById('userView').style.display       = currentRole === 'user'       ? 'block' : 'none';
     }
 }
 
-// ── INIT ─────────────────────────────────────────────────────────
-checkSession();
-initMobileView();
-</script>
+function syncMobProjectDropdown() {
+    const desk = document.getElementById('existingProjectSelect');
+    const mob  = document.getElementById('mobProjectSelect');
+    if (!desk || !mob) return;
+    mob.innerHTML = desk.innerHTML;
+    if (activeProjectId) {
+        mob.value = activeProjectId;
+        const banner = document.getElementById('mobActiveBanner');
+        const opt = desk.options[desk.selectedIndex];
+        if (banner && opt) { banner.innerText = '✓ ' + opt.text; banner.style.display = 'block'; }
+    }
+}
+
+function buildMobNav() {
+    const grid = document.getElementById('mobNavGrid'); if (!grid || !currentRole) return;
+    const sections = MOB_SECTIONS[currentRole] || [];
+    grid.innerHTML = sections.map(s =>
+        `<div class="mob-nav-btn" onclick="showMobileSection('${s.id}')">
+            <span class="mob-icon">${s.icon}</span>${s.label}
+        </div>`).join('');
+    const dd = document.getElementById('mobNavDropdown'); if (!dd) return;
+    dd.innerHTML = '<option value="">Navigate…</option>' +
+        sections.map(s => `<option value="${s.id}">${s.icon} ${s.label}</option>`).join('');
+}
+
+function showMobileSection(sectionId) {
+    if (!currentRole) return;
+    const sec = (MOB_SECTIONS[currentRole]||[]).find(s => s.id === sectionId); if (!sec) return;
+    const selector = (MOB_CARD_MAP[currentRole]||{})[sectionId];
+    const card = selector ? document.querySelector(selector) : null;
+    const content = document.getElementById('mobSectionContent'); if (!content) return;
+    content.innerHTML = '';
+    if (card) {
+        const clone = card.cloneNode(true);
+        content.appendChild(clone);
+    } else {
+        content.innerHTML = '<p style="color:var(--secondary);padding:20px;">Section not available.</p>';
+    }
+    document.getElementById('mobSectionTitle').innerText = sec.label;
+    document.getElementById('mobNavDropdown').value      = '';
+    document.getElementById('mobileHome').style.display    = 'none';
+    document.getElementById('mobileSection').style.display = 'block';
+    // Trigger re-renders for dynamic content
+    setTimeout(() => {
+        if (sectionId === 'taskgrid')    renderGrid();
+        if (sectionId === 'deps')        renderDependencyGrid();
+        if (sectionId === 'assignments') renderAssignGrid();
+        if (sectionId === 'resources')   renderResGrid();
+        if (sectionId === 'users')       loadUserManagement();
+        if (sectionId === 'gantt') {
+            const cId = currentRole==='admin'?'ganttContainer':currentRole==='supervisor'?'supGanttChart':'userGanttChart';
+            if (content.querySelector('#'+cId)) renderGanttChart(cId);
+        }
+    }, 80);
+}
+
+function showMobileHome() {
+    document.getElementById('mobileSection').style.display = 'none';
+    document.getElementById('mobileHome').style.display    = 'block';
+    syncMobProjectDropdown();
+}
+
+function navigateMobileSection(sectionId) { if (sectionId) showMobileSection(sectionId); }
+
+// Auto-init mobile
+(function() {
+    const stored    = localStorage.getItem('mchMobile');
+    const autoMob   = window.innerWidth < 768;
+    isMobileView    = stored !== null ? stored === '1' : autoMob;
+    const loginBtn  = document.getElementById('loginMobBtn');
+    if (loginBtn) { loginBtn.style.display = 'block'; loginBtn.innerText = isMobileView ? '🖥 Desktop View' : '📱 Mobile View'; }
+    if (isMobileView && currentRole) applyMobileView();
+})();</script>
 </body>
 </html>
