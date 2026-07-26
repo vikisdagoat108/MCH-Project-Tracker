@@ -541,16 +541,14 @@
                     <table class="task-grid">
                         <thead><tr>
                             <th class="row-num">#</th>
-                            <th style="min-width:280px;">Item Name</th>
-                            <th style="min-width:100px;"># Units</th>
-                            <th style="min-width:120px;">$ Unit</th>
-                            <th style="min-width:120px;">Total</th>
+                            <th style="min-width:320px;">Item Name</th>
+                            <th style="min-width:150px;">Price ($)</th>
                             <th class="row-actions">Del</th>
                         </tr></thead>
                         <tbody id="budgetGridBody"></tbody>
                         <tfoot>
                             <tr style="background:#1B365D;color:white;">
-                                <td colspan="4" style="padding:10px 12px;font-weight:700;font-size:14px;">GRAND TOTAL</td>
+                                <td colspan="2" style="padding:10px 12px;font-weight:700;font-size:14px;">GRAND TOTAL</td>
                                 <td style="padding:10px 12px;font-weight:700;font-size:14px;" id="budgetGrandTotal">$0.00</td>
                                 <td></td>
                             </tr>
@@ -2111,17 +2109,15 @@ function newBudgetRowObject(existing) {
         bRowId:    'b' + budgetRowCounter,
         dbId:      existing ? existing.id : null,
         isNew:     !existing, isDirty: false,
-        item_name:  existing ? (existing.item_name  || '') : '',
-        units:      existing && existing.units      !== null ? existing.units      : '',
-        unit_price: existing && existing.unit_price !== null ? existing.unit_price : '',
+        item_name: existing ? (existing.item_name  || '') : '',
+        total:     existing && existing.total !== null ? existing.total : '',
         sort_order: existing ? (existing.sort_order || 0) : 0
     };
 }
 
 function calcTotal(row) {
-    const u = parseFloat(row.units);
-    const p = parseFloat(row.unit_price);
-    return (!isNaN(u) && !isNaN(p)) ? u * p : null;
+    const t = parseFloat(row.total);
+    return isNaN(t) ? null : t;
 }
 
 function formatCurrency(val) {
@@ -2161,11 +2157,9 @@ function renderBudgetGrid() {
             <td class="row-num">${idx + 1}</td>
             <td><input type="text" value="${ea(row.item_name)}" placeholder="Item description"
                 oninput="updateBudgetField('${row.bRowId}','item_name',this.value)"></td>
-            <td><input type="number" value="${row.units !== '' ? row.units : ''}" min="0" step="any" placeholder="0"
-                onchange="updateBudgetField('${row.bRowId}','units',this.value===''?'':(parseFloat(this.value)||0))"></td>
-            <td><input type="number" value="${row.unit_price !== '' ? row.unit_price : ''}" min="0" step="any" placeholder="0.00"
-                onchange="updateBudgetField('${row.bRowId}','unit_price',this.value===''?'':(parseFloat(this.value)||0))"></td>
-            <td style="padding:8px;font-weight:600;color:var(--primary);">${formatCurrency(total)}</td>
+            <td><input type="number" value="${row.total !== '' ? row.total : ''}" min="0" step="0.01" placeholder="0.00"
+                onchange="updateBudgetField('${row.bRowId}','total',this.value===''?'':(parseFloat(this.value)||0))"
+                style="font-weight:600;"></td>
             <td class="row-actions"><button onclick="removeBudgetRow('${row.bRowId}')" title="Delete">✕</button></td>`;
         body.appendChild(tr);
     });
@@ -2175,32 +2169,25 @@ function renderBudgetGrid() {
 
 function importBudgetRowsFromArrays(rows) {
     let imported = 0;
-    let headerFound = false;
-
     rows.forEach(cells => {
         if (!cells || cells.length === 0) return;
-        // Detect header row: contains "# Units" or "Unit" in columns
-        const flat = cells.map(c => String(c||'').toLowerCase());
-        if (!headerFound && (flat.some(v => v.includes('unit')) || flat.some(v => v.includes('item')))) {
-            headerFound = true; return;
-        }
+        const name  = (cells[0] || '').toString().trim();
+        const price = cells[1];
 
-        // Try to find item name (non-empty text), units (number), unit price (number)
-        // Based on file structure: col B=name, col C=units, col D=unit price
-        const name = (cells[1] || cells[0] || '').toString().trim();
+        // Skip blank rows and header-like rows
         if (!name) return;
+        if (/^(item|name|description|pikes|project)/i.test(name) && !price) return;
 
-        const units      = parseFloat(String(cells[2] || '').replace(/[^0-9.-]/g, '')) || null;
-        const unit_price = parseFloat(String(cells[3] || '').replace(/[^0-9.-]/g, '')) || null;
+        // Price must be a number
+        const priceNum = parseFloat(String(price || '').replace(/[^0-9.-]/g, ''));
+        if (isNaN(priceNum) && price !== 0) return; // skip rows with no numeric price (but allow 0)
 
         const row = newBudgetRowObject(null);
-        row.item_name  = name;
-        row.units      = units !== null ? units : '';
-        row.unit_price = unit_price !== null ? unit_price : '';
+        row.item_name = name;
+        row.total     = isNaN(priceNum) ? '' : priceNum;
         budgetRows.push(row);
         imported++;
     });
-
     renderBudgetGrid();
     return imported;
 }
@@ -2240,9 +2227,9 @@ async function saveAllBudget() {
             const payload = {
                 project_id: activeProjectId,
                 item_name:  row.item_name || '',
-                units:      row.units      !== '' ? Number(row.units)      : null,
-                unit_price: row.unit_price !== '' ? Number(row.unit_price) : null,
-                total:      total,
+                units:      null,
+                unit_price: null,
+                total:      row.total !== '' ? Number(row.total) : null,
                 sort_order: budgetRows.indexOf(row) + 1
             };
             if (row.isNew) {
