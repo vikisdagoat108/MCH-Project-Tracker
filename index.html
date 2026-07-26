@@ -2179,20 +2179,20 @@ function renderBudgetGrid() {
     const tfoot = document.getElementById('budgetTfoot');
     if (tfoot) {
         tfoot.innerHTML = `
-            <tr style="background:#2D3748;color:white;">
-                <td colspan="2" style="padding:10px 12px;font-weight:700;font-size:14px;">SUBTOTAL</td>
-                <td style="padding:10px 12px;font-weight:700;font-size:14px;">${formatCurrency(grandTotal)}</td>
-                <td></td>
+            <tr>
+                <td colspan="2" style="padding:10px 12px;font-weight:700;font-size:14px;background:#4A5568;color:white;">SUBTOTAL</td>
+                <td style="padding:10px 12px;font-weight:700;font-size:14px;background:#4A5568;color:white;">${formatCurrency(grandTotal)}</td>
+                <td style="background:#4A5568;"></td>
             </tr>
-            <tr style="background:#4A5568;color:white;">
-                <td colspan="2" style="padding:10px 12px;font-weight:600;font-size:13px;">WA State Tax (10.25%)</td>
-                <td style="padding:10px 12px;font-weight:600;font-size:13px;">${formatCurrency(tax)}</td>
-                <td></td>
+            <tr>
+                <td colspan="2" style="padding:10px 12px;font-weight:600;font-size:13px;background:#718096;color:white;">WA State Tax (10.25%)</td>
+                <td style="padding:10px 12px;font-weight:600;font-size:13px;background:#718096;color:white;">${formatCurrency(tax)}</td>
+                <td style="background:#718096;"></td>
             </tr>
-            <tr style="background:#1B365D;color:white;">
-                <td colspan="2" style="padding:10px 12px;font-weight:700;font-size:15px;">TOTAL (with Tax)</td>
-                <td style="padding:10px 12px;font-weight:700;font-size:15px;">${formatCurrency(total)}</td>
-                <td></td>
+            <tr>
+                <td colspan="2" style="padding:10px 12px;font-weight:700;font-size:15px;background:#1B365D;color:white;">TOTAL (with Tax)</td>
+                <td style="padding:10px 12px;font-weight:700;font-size:15px;background:#1B365D;color:white;">${formatCurrency(total)}</td>
+                <td style="background:#1B365D;"></td>
             </tr>`;
     }
 }
