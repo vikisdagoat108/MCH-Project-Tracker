@@ -344,6 +344,7 @@
                 <button class="desktop-nav-btn" onclick="scrollToSection('resGridBody')"><span class="dn-icon">👷</span>Resources</button>
                 <button class="desktop-nav-btn" onclick="scrollToSection('assignGridBody')"><span class="dn-icon">📌</span>Assignments</button>
                 <button class="desktop-nav-btn" onclick="scrollToSection('ganttContainer')"><span class="dn-icon">📊</span>Gantt Chart</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('budgetGridBody')"><span class="dn-icon">💰</span>Budget</button>
             </nav>
 
             <div class="desktop-main">
@@ -523,6 +524,46 @@
                 </div>
                 <div class="gantt-wrapper" id="ganttContainer"><p style="color:var(--secondary);padding:20px;text-align:center;">Click Generate once tasks have dates.</p></div>
                 <div class="gantt-missing" id="ganttMissingDates"></div>
+            </div>
+
+            <!-- BUDGET SECTION -->
+            <div class="card">
+                <h2>💰 Budget</h2>
+                <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">
+                    Import your budget spreadsheet. Expected columns: <strong>Item Name, # Units, $ Unit</strong> (Total auto-calculates).
+                    You can also add rows manually.
+                </p>
+                <div class="form-group">
+                    <label>Upload .xlsx / .csv file</label>
+                    <input type="file" id="budgetImportFile" accept=".xlsx,.xls,.csv" onchange="handleBudgetFileImport(event)">
+                </div>
+                <div class="grid-wrapper" style="margin-top:12px;">
+                    <table class="task-grid">
+                        <thead><tr>
+                            <th class="row-num">#</th>
+                            <th style="min-width:280px;">Item Name</th>
+                            <th style="min-width:100px;"># Units</th>
+                            <th style="min-width:120px;">$ Unit</th>
+                            <th style="min-width:120px;">Total</th>
+                            <th class="row-actions">Del</th>
+                        </tr></thead>
+                        <tbody id="budgetGridBody"></tbody>
+                        <tfoot>
+                            <tr style="background:#1B365D;color:white;">
+                                <td colspan="4" style="padding:10px 12px;font-weight:700;font-size:14px;">GRAND TOTAL</td>
+                                <td style="padding:10px 12px;font-weight:700;font-size:14px;" id="budgetGrandTotal">$0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="addBlankBudgetRow(1)">+ Add Row</button>
+                    <button class="btn btn-secondary" onclick="addBlankBudgetRow(5)">+ Add 5 Rows</button>
+                    <button class="btn btn-success" onclick="saveAllBudget()">Save Budget</button>
+                    <button class="btn btn-secondary" onclick="loadBudget()">Reload from DB</button>
+                    <span class="save-status" id="budgetSaveStatus"></span>
+                </div>
             </div>
         </div><!-- /desktop-main -->
         </div><!-- /desktop-layout -->
@@ -797,6 +838,7 @@ async function selectExistingProject(id) {
     if (document.getElementById('projDesc')) document.getElementById('projDesc').value = data.description || '';
     await refreshDataContainers();
     if (currentRole === 'supervisor') loadSupervisorView();
+    if (currentRole === 'admin') loadBudget();
 }
 
 async function handleProjectSubmit(event) {
@@ -2057,6 +2099,176 @@ async function loadResources() {
 
 // ── INIT ────────────────────────────────────────────────────────
 checkSession();
+
+// ── BUDGET ───────────────────────────────────────────────────────
+
+let budgetRows = [];
+let budgetRowCounter = 0;
+
+function newBudgetRowObject(existing) {
+    budgetRowCounter++;
+    return {
+        bRowId:    'b' + budgetRowCounter,
+        dbId:      existing ? existing.id : null,
+        isNew:     !existing, isDirty: false,
+        item_name:  existing ? (existing.item_name  || '') : '',
+        units:      existing && existing.units      !== null ? existing.units      : '',
+        unit_price: existing && existing.unit_price !== null ? existing.unit_price : '',
+        sort_order: existing ? (existing.sort_order || 0) : 0
+    };
+}
+
+function calcTotal(row) {
+    const u = parseFloat(row.units);
+    const p = parseFloat(row.unit_price);
+    return (!isNaN(u) && !isNaN(p)) ? u * p : null;
+}
+
+function formatCurrency(val) {
+    if (val === null || val === undefined || val === '') return '—';
+    return '$' + Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function updateBudgetField(bRowId, field, value) {
+    const row = budgetRows.find(r => r.bRowId === bRowId); if (!row) return;
+    row[field] = value; if (!row.isNew) row.isDirty = true;
+    renderBudgetGrid();
+}
+
+function addBlankBudgetRow(n) {
+    for (let i = 0; i < n; i++) budgetRows.push(newBudgetRowObject(null));
+    renderBudgetGrid();
+}
+
+function removeBudgetRow(bRowId) {
+    const row = budgetRows.find(r => r.bRowId === bRowId); if (!row) return;
+    if (!row.isNew && !confirm('Delete this budget item?')) return;
+    if (!row.isNew) supabaseClient.from('budget_items').delete().eq('id', row.dbId);
+    budgetRows = budgetRows.filter(r => r.bRowId !== bRowId);
+    renderBudgetGrid();
+}
+
+function renderBudgetGrid() {
+    const body = document.getElementById('budgetGridBody'); if (!body) return;
+    body.innerHTML = '';
+    let grandTotal = 0;
+    budgetRows.forEach((row, idx) => {
+        const total = calcTotal(row);
+        if (total !== null) grandTotal += total;
+        const tr = document.createElement('tr');
+        tr.className = row.isNew ? 'new-row' : (row.isDirty ? 'dirty-row' : '');
+        tr.innerHTML = `
+            <td class="row-num">${idx + 1}</td>
+            <td><input type="text" value="${ea(row.item_name)}" placeholder="Item description"
+                oninput="updateBudgetField('${row.bRowId}','item_name',this.value)"></td>
+            <td><input type="number" value="${row.units !== '' ? row.units : ''}" min="0" step="any" placeholder="0"
+                onchange="updateBudgetField('${row.bRowId}','units',this.value===''?'':(parseFloat(this.value)||0))"></td>
+            <td><input type="number" value="${row.unit_price !== '' ? row.unit_price : ''}" min="0" step="any" placeholder="0.00"
+                onchange="updateBudgetField('${row.bRowId}','unit_price',this.value===''?'':(parseFloat(this.value)||0))"></td>
+            <td style="padding:8px;font-weight:600;color:var(--primary);">${formatCurrency(total)}</td>
+            <td class="row-actions"><button onclick="removeBudgetRow('${row.bRowId}')" title="Delete">✕</button></td>`;
+        body.appendChild(tr);
+    });
+    const gt = document.getElementById('budgetGrandTotal');
+    if (gt) gt.innerText = formatCurrency(grandTotal);
+}
+
+function importBudgetRowsFromArrays(rows) {
+    let imported = 0;
+    let headerFound = false;
+
+    rows.forEach(cells => {
+        if (!cells || cells.length === 0) return;
+        // Detect header row: contains "# Units" or "Unit" in columns
+        const flat = cells.map(c => String(c||'').toLowerCase());
+        if (!headerFound && (flat.some(v => v.includes('unit')) || flat.some(v => v.includes('item')))) {
+            headerFound = true; return;
+        }
+
+        // Try to find item name (non-empty text), units (number), unit price (number)
+        // Based on file structure: col B=name, col C=units, col D=unit price
+        const name = (cells[1] || cells[0] || '').toString().trim();
+        if (!name) return;
+
+        const units      = parseFloat(String(cells[2] || '').replace(/[^0-9.-]/g, '')) || null;
+        const unit_price = parseFloat(String(cells[3] || '').replace(/[^0-9.-]/g, '')) || null;
+
+        const row = newBudgetRowObject(null);
+        row.item_name  = name;
+        row.units      = units !== null ? units : '';
+        row.unit_price = unit_price !== null ? unit_price : '';
+        budgetRows.push(row);
+        imported++;
+    });
+
+    renderBudgetGrid();
+    return imported;
+}
+
+function handleBudgetFileImport(event) {
+    const file = event.target.files[0]; if (!file) return;
+    const statusEl = document.getElementById('budgetSaveStatus');
+    statusEl.className = 'save-status pending'; statusEl.innerText = 'Reading…';
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: false });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' });
+            const count = importBudgetRowsFromArrays(rows);
+            statusEl.className = 'save-status ok';
+            statusEl.innerText = `Imported ${count} item(s). Click "Save Budget" when ready.`;
+        } catch (err) {
+            statusEl.className = 'save-status err'; statusEl.innerText = 'Error: ' + err.message;
+        }
+        event.target.value = '';
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+async function saveAllBudget() {
+    if (!supabaseClient) return alert('Connect first.');
+    if (!activeProjectId) return alert('Select a project first.');
+    const statusEl = document.getElementById('budgetSaveStatus');
+    statusEl.className = 'save-status pending'; statusEl.innerText = 'Saving…';
+    const toSave = budgetRows.filter(r => r.item_name || r.units !== '' || r.unit_price !== '');
+    if (toSave.length === 0) { statusEl.className = 'save-status err'; statusEl.innerText = 'Nothing to save.'; return; }
+    let saved = 0;
+    try {
+        for (const row of toSave) {
+            const total = calcTotal(row);
+            const payload = {
+                project_id: activeProjectId,
+                item_name:  row.item_name || '',
+                units:      row.units      !== '' ? Number(row.units)      : null,
+                unit_price: row.unit_price !== '' ? Number(row.unit_price) : null,
+                total:      total,
+                sort_order: budgetRows.indexOf(row) + 1
+            };
+            if (row.isNew) {
+                const { data, error } = await supabaseClient.from('budget_items').insert([payload]).select();
+                if (error) throw new Error('Save failed: ' + error.message);
+                row.dbId = data[0].id; row.isNew = false;
+            } else {
+                const { error } = await supabaseClient.from('budget_items').update(payload).eq('id', row.dbId);
+                if (error) throw new Error('Update failed: ' + error.message);
+            }
+            row.isDirty = false; saved++;
+        }
+        statusEl.className = 'save-status ok'; statusEl.innerText = `Saved ${saved} item(s).`;
+        renderBudgetGrid();
+    } catch (err) { statusEl.className = 'save-status err'; statusEl.innerText = err.message; }
+}
+
+async function loadBudget() {
+    if (!supabaseClient || !activeProjectId) return;
+    const { data, error } = await supabaseClient.from('budget_items').select('*')
+        .eq('project_id', activeProjectId).order('sort_order', { ascending: true });
+    if (error) { alert('Could not load budget: ' + error.message); return; }
+    budgetRows = (data || []).map(b => newBudgetRowObject(b));
+    if (budgetRows.length === 0) addBlankBudgetRow(3);
+    else renderBudgetGrid();
+}
 
 function scrollToSection(elementId) {
     const el = document.getElementById(elementId);
