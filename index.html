@@ -65,6 +65,28 @@
 
         /* ── LAYOUT ────────────────────────────────────────────── */
         .container { max-width: 1500px; margin: 0 auto; padding: 24px; }
+
+        /* ── DESKTOP NAV SIDEBAR ──────────────────────────────── */
+        .desktop-layout { display: flex; gap: 20px; align-items: flex-start; }
+        .desktop-nav {
+            width: 160px; flex-shrink: 0; position: sticky; top: 80px;
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .desktop-nav h3 { color: var(--secondary); font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; padding-bottom: 8px;
+            border-bottom: 1px solid var(--border); }
+        .desktop-nav-btn {
+            display: flex; align-items: center; gap: 8px; width: 100%;
+            background: none; border: none; padding: 8px 10px; border-radius: 6px;
+            font-size: 13px; font-weight: 600; color: var(--primary); cursor: pointer;
+            text-align: left; transition: background 0.15s; margin-bottom: 2px;
+        }
+        .desktop-nav-btn:hover, .desktop-nav-btn.active { background: #EBF8FF; color: var(--accent); }
+        .desktop-nav-btn .dn-icon { font-size: 16px; flex-shrink: 0; }
+        .desktop-main { flex: 1; min-width: 0; }
+        body.mobile-view .desktop-layout { flex-direction: column; }
+        body.mobile-view .desktop-nav { display: none; }
         .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 24px; }
         h2 { color: var(--primary); margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         .form-group { margin-bottom: 14px; }
@@ -308,7 +330,23 @@
 
         <!-- ══════════ ADMIN VIEW ══════════ -->
         <div id="adminView" style="display:none;">
+        <div class="desktop-layout">
 
+            <!-- Desktop nav sidebar -->
+            <nav class="desktop-nav">
+                <h3>Navigate</h3>
+                <button class="desktop-nav-btn" onclick="scrollToSection('userManagementList')"><span class="dn-icon">👥</span>Users</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('projName')"><span class="dn-icon">➕</span>New Project</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('importFileInput')"><span class="dn-icon">📥</span>Import Tasks</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('gridBody')"><span class="dn-icon">📋</span>Task Grid</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('depImportFileInput')"><span class="dn-icon">📤</span>Import Deps</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('depGridBody')"><span class="dn-icon">🔗</span>Dependencies</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('resGridBody')"><span class="dn-icon">👷</span>Resources</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('assignGridBody')"><span class="dn-icon">📌</span>Assignments</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('ganttContainer')"><span class="dn-icon">📊</span>Gantt Chart</button>
+            </nav>
+
+            <div class="desktop-main">
             <div class="card">
                 <h2>👥 Manage Users</h2>
                 <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">Change roles for any registered user. New accounts default to "User" until promoted here.</p>
@@ -486,10 +524,17 @@
                 <div class="gantt-wrapper" id="ganttContainer"><p style="color:var(--secondary);padding:20px;text-align:center;">Click Generate once tasks have dates.</p></div>
                 <div class="gantt-missing" id="ganttMissingDates"></div>
             </div>
-        </div>
-
-        <!-- ══════════ SUPERVISOR VIEW ══════════ -->
+        </div><!-- /desktop-main -->
+        </div><!-- /desktop-layout -->
+        </div><!-- /adminView -->
         <div id="supervisorView" style="display:none;">
+        <div class="desktop-layout">
+            <nav class="desktop-nav">
+                <h3>Navigate</h3>
+                <button class="desktop-nav-btn" onclick="scrollToSection('supGanttPanel')"><span class="dn-icon">📅</span>Schedule</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('supGanttChart')"><span class="dn-icon">📊</span>Gantt Chart</button>
+            </nav>
+            <div class="desktop-main">
             <div class="card">
                 <h2 style="color:var(--supervisor);">📅 Schedule Editor — Supervisor</h2>
                 <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">Edit Start and End dates for any task. Dependent tasks will automatically shift when you save a change.</p>
@@ -508,10 +553,18 @@
                 <div class="gantt-wrapper" id="supGanttChart"><p style="color:var(--secondary);padding:20px;text-align:center;">Click Generate once tasks have dates.</p></div>
                 <div class="gantt-missing" id="supGanttMissing"></div>
             </div>
-        </div>
+            </div><!-- /desktop-main -->
+        </div><!-- /desktop-layout -->
+        </div><!-- /supervisorView -->
 
         <!-- ══════════ USER VIEW ══════════ -->
         <div id="userView" style="display:none;">
+        <div class="desktop-layout">
+            <nav class="desktop-nav">
+                <h3>Navigate</h3>
+                <button class="desktop-nav-btn" onclick="scrollToSection('userGanttChart')"><span class="dn-icon">📊</span>Gantt Chart</button>
+            </nav>
+            <div class="desktop-main">
             <div class="card">
                 <h2>📊 Gantt Chart</h2>
                 <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
@@ -520,7 +573,9 @@
                 <div class="gantt-wrapper" id="userGanttChart"><p style="color:var(--secondary);padding:20px;text-align:center;">Select a project above to view the chart.</p></div>
                 <div class="gantt-missing" id="userGanttMissing"></div>
             </div>
-        </div>
+            </div><!-- /desktop-main -->
+        </div><!-- /desktop-layout -->
+        </div><!-- /userView -->
 
     </div><!-- /container -->
 </div><!-- /mainApp -->
@@ -2002,6 +2057,19 @@ async function loadResources() {
 
 // ── INIT ────────────────────────────────────────────────────────
 checkSession();
+
+function scrollToSection(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Highlight the section briefly
+    const card = el.closest('.card');
+    if (card) {
+        card.style.transition = 'box-shadow 0.3s';
+        card.style.boxShadow = '0 0 0 3px var(--accent)';
+        setTimeout(() => { card.style.boxShadow = ''; }, 1500);
+    }
+}
 
 // ── MOBILE SYSTEM ────────────────────────────────────────────────
 
