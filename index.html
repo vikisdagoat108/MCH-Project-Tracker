@@ -546,7 +546,7 @@
                             <th class="row-actions">Del</th>
                         </tr></thead>
                         <tbody id="budgetGridBody"></tbody>
-                        <tfoot>
+                        <tfoot id="budgetTfoot">
                             <tr style="background:#2D3748;color:white;">
                                 <td colspan="2" style="padding:10px 12px;font-weight:700;font-size:14px;">SUBTOTAL</td>
                                 <td style="padding:10px 12px;font-weight:700;font-size:14px;" id="budgetGrandTotal">$0.00</td>
@@ -2176,15 +2176,7 @@ function renderBudgetGrid() {
     const tax   = grandTotal * 0.1025;
     const total = grandTotal + tax;
 
-    const gt = document.getElementById('budgetGrandTotal');
-    if (gt) gt.innerText = formatCurrency(grandTotal);
-    const taxEl = document.getElementById('budgetTax');
-    if (taxEl) taxEl.innerText = formatCurrency(tax);
-    const totalEl = document.getElementById('budgetTotalWithTax');
-    if (totalEl) totalEl.innerText = formatCurrency(total);
-
-    // Also update tfoot directly in case IDs aren't found
-    const tfoot = body.closest('table')?.querySelector('tfoot');
+    const tfoot = document.getElementById('budgetTfoot');
     if (tfoot) {
         tfoot.innerHTML = `
             <tr style="background:#2D3748;color:white;">
