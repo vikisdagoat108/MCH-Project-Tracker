@@ -547,9 +547,19 @@
                         </tr></thead>
                         <tbody id="budgetGridBody"></tbody>
                         <tfoot>
-                            <tr style="background:#1B365D;color:white;">
-                                <td colspan="2" style="padding:10px 12px;font-weight:700;font-size:14px;">GRAND TOTAL</td>
+                            <tr style="background:#2D3748;color:white;">
+                                <td colspan="2" style="padding:10px 12px;font-weight:700;font-size:14px;">SUBTOTAL</td>
                                 <td style="padding:10px 12px;font-weight:700;font-size:14px;" id="budgetGrandTotal">$0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr style="background:#4A5568;color:white;">
+                                <td colspan="2" style="padding:10px 12px;font-weight:600;font-size:13px;">WA State Tax (10.25%)</td>
+                                <td style="padding:10px 12px;font-weight:600;font-size:13px;" id="budgetTax">$0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr style="background:#1B365D;color:white;">
+                                <td colspan="2" style="padding:10px 12px;font-weight:700;font-size:15px;">TOTAL (with Tax)</td>
+                                <td style="padding:10px 12px;font-weight:700;font-size:15px;" id="budgetTotalWithTax">$0.00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -2164,7 +2174,13 @@ function renderBudgetGrid() {
         body.appendChild(tr);
     });
     const gt = document.getElementById('budgetGrandTotal');
+    const tax = grandTotal * 0.1025;
+    const total = grandTotal + tax;
     if (gt) gt.innerText = formatCurrency(grandTotal);
+    const taxEl = document.getElementById('budgetTax');
+    if (taxEl) taxEl.innerText = formatCurrency(tax);
+    const totalEl = document.getElementById('budgetTotalWithTax');
+    if (totalEl) totalEl.innerText = formatCurrency(total);
 }
 
 function importBudgetRowsFromArrays(rows) {
