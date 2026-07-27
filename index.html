@@ -78,9 +78,28 @@
         body.dark-mode .grid-wrapper { border-color:#2d3561; }
         body.dark-mode .gantt-wrapper { background:#16213e; border-color:#2d3561; }
         body.dark-mode h2 { color:#90cdf4; }
+        body.dark-mode p { color:#a0aec0; }
+        body.dark-mode label { color:#cbd5e0; }
         body.dark-mode .desktop-nav { background:#16213e; border-color:#2d3561; }
         body.dark-mode .desktop-nav-btn { color:#90cdf4; }
         body.dark-mode .desktop-nav-btn:hover { background:#0f3460; }
+        /* Fix inline table styles used in Manage Users and other dynamic tables */
+        body.dark-mode td { color:#e2e8f0 !important; }
+        body.dark-mode tr[style*="background:white"] { background:#16213e !important; }
+        body.dark-mode tr[style*="background:#F7FAFC"] { background:#1a1a2e !important; }
+        body.dark-mode [style*="background:white"] { background:#16213e !important; }
+        body.dark-mode [style*="background:#F7FAFC"] { background:#1a1a2e !important; }
+        body.dark-mode [style*="color:#2D3748"] { color:#e2e8f0 !important; }
+        body.dark-mode [style*="color:#1B365D"] { color:#90cdf4 !important; }
+        body.dark-mode [style*="color:var(--secondary)"] { color:#a0aec0 !important; }
+        body.dark-mode .save-status.ok { color:#68d391; }
+        body.dark-mode .save-status.err { color:#fc8181; }
+        body.dark-mode .info-box { background:#0f3460; border-color:#2d3561; color:#a0aec0; }
+        body.dark-mode .info-box code { background:rgba(255,255,255,0.1); }
+        body.dark-mode .mob-nav-btn { background:#16213e; border-color:#2d3561; color:#90cdf4; }
+        body.dark-mode .mob-nav-btn:hover { background:#0f3460; }
+        body.dark-mode #mobileHome .card { background:#16213e; }
+        body.dark-mode .grid-legend { color:#a0aec0; }
         .dark-mode-btn { background:rgba(255,255,255,0.15); color:white; border:1px solid rgba(255,255,255,0.3); padding:6px 12px; border-radius:6px; cursor:pointer; font-size:16px; }
         .desktop-layout { display: flex; gap: 20px; align-items: flex-start; }
         .desktop-nav {
