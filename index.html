@@ -521,6 +521,7 @@
                 <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
                     <button class="btn btn-secondary" onclick="renderGanttChart('ganttContainer')">Generate / Refresh Chart</button>
                     <button class="btn btn-secondary" id="togglePanelBtn_ganttContainer" onclick="toggleDatePanel('ganttContainer')" style="display:none;">📅 Hide Edit Panel</button>
+                    <button class="btn btn-secondary" id="dragModeBtn_ganttContainer" onclick="toggleDragMode('ganttContainer')" style="display:none;">🖐 Drag to Edit: OFF</button>
                 </div>
                 <div class="gantt-wrapper" id="ganttContainer"><p style="color:var(--secondary);padding:20px;text-align:center;">Click Generate once tasks have dates.</p></div>
                 <div class="gantt-missing" id="ganttMissingDates"></div>
@@ -599,6 +600,7 @@
                 <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
                     <button class="btn btn-secondary" onclick="renderGanttChart('supGanttChart')">Generate / Refresh Chart</button>
                     <button class="btn btn-secondary" id="togglePanelBtn_supGanttChart" onclick="toggleDatePanel('supGanttChart')" style="display:none;">📅 Hide Edit Panel</button>
+                    <button class="btn btn-secondary" id="dragModeBtn_supGanttChart" onclick="toggleDragMode('supGanttChart')" style="display:none;">🖐 Drag to Edit: OFF</button>
                 </div>
                 <div class="gantt-wrapper" id="supGanttChart"><p style="color:var(--secondary);padding:20px;text-align:center;">Click Generate once tasks have dates.</p></div>
                 <div class="gantt-missing" id="supGanttMissing"></div>
