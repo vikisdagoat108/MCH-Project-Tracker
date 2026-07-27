@@ -1490,7 +1490,8 @@ function renderGanttChart(containerId) {
         const lbl = (task.task_label ? task.task_label + ' — ' : '') + task.title;
 
         if (idx % 2 === 0) bars += `<rect x="0" y="${y}" width="${chartW}" height="${rowH}" fill="#F7FAFC" opacity="0.5"/>`;
-        bars += `<rect x="${x1}" y="${y+14}" width="${w}" height="${rowH-28}" rx="3" fill="${color}" opacity="0.85"/>`;
+        bars += `<rect x="${x1}" y="${y+14}" width="${w}" height="${rowH-28}" rx="3" fill="${color}" opacity="0.85"
+            data-taskid="${task.dbId}" data-x1="${x1}" data-start="${task.start_date}" data-end="${task.end_date}" class="gantt-bar"/>`;
         if (fillW > 0) bars += `<rect x="${x1}" y="${y+14}" width="${fillW}" height="${rowH-28}" rx="3" fill="rgba(0,0,0,0.2)"/>`;
         if (pct > 0 && w > 50) bars += `<text x="${x1+w/2}" y="${y+rowH/2+4}" font-size="9" fill="white" text-anchor="middle" opacity="0.9">${pct}%</text>`;
 
@@ -1563,6 +1564,121 @@ function renderGanttChart(containerId) {
     // Show the panel toggle button now that the chart is rendered
     const toggleBtn = document.getElementById('togglePanelBtn_' + containerId);
     if (toggleBtn) toggleBtn.style.display = 'inline-block';
+    const dragBtn = document.getElementById('dragModeBtn_' + containerId);
+    if (dragBtn) dragBtn.style.display = 'inline-block';
+
+    // Store scale info for drag calculations
+    window._ganttMeta = window._ganttMeta || {};
+    window._ganttMeta[containerId] = { pxPerDay, minDate, labelWidth };
+}
+
+// ── GANTT DRAG-TO-EDIT ───────────────────────────────────────────
+
+let _dragState = null;
+const _dragModeActive = {};
+
+function toggleDragMode(containerId) {
+    _dragModeActive[containerId] = !_dragModeActive[containerId];
+    const btn = document.getElementById('dragModeBtn_' + containerId);
+    const container = document.getElementById(containerId);
+    const svg = container ? container.querySelector('svg') : null;
+
+    if (_dragModeActive[containerId]) {
+        if (btn) { btn.innerText = '🖐 Drag to Edit: ON'; btn.style.background = 'var(--success)'; }
+        if (svg) {
+            svg.style.cursor = 'grab';
+            svg.querySelectorAll('.gantt-bar').forEach(r => { r.style.cursor = 'grab'; });
+            svg.addEventListener('mousedown', _onDragStart);
+            svg.addEventListener('touchstart', _onTouchStart, { passive: false });
+        }
+    } else {
+        if (btn) { btn.innerText = '🖐 Drag to Edit: OFF'; btn.style.background = ''; }
+        if (svg) {
+            svg.style.cursor = '';
+            svg.querySelectorAll('.gantt-bar').forEach(r => { r.style.cursor = ''; });
+            svg.removeEventListener('mousedown', _onDragStart);
+            svg.removeEventListener('touchstart', _onTouchStart);
+        }
+        _dragState = null;
+    }
+}
+
+function _getSVGX(e, svg) {
+    const rect = svg.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    return (clientX - rect.left) * (svg.viewBox?.baseVal?.width || svg.clientWidth) / svg.clientWidth;
+}
+
+function _onDragStart(e) {
+    const bar = e.target.closest('.gantt-bar');
+    if (!bar) return;
+    e.preventDefault();
+    const svg = e.currentTarget;
+    const containerId = svg.closest('[id]').id;
+    const meta = (window._ganttMeta || {})[containerId];
+    if (!meta) return;
+
+    _dragState = {
+        svg, containerId, bar,
+        taskDbId:  bar.getAttribute('data-taskid'),
+        origStart: bar.getAttribute('data-start'),
+        origEnd:   bar.getAttribute('data-end'),
+        origX1:    parseFloat(bar.getAttribute('data-x1')),
+        startMouseX: _getSVGX(e, svg),
+        pxPerDay:  meta.pxPerDay,
+        origWidth: parseFloat(bar.getAttribute('width')),
+        origBarX:  parseFloat(bar.getAttribute('x'))
+    };
+    svg.style.cursor = 'grabbing';
+    document.addEventListener('mousemove', _onDragMove);
+    document.addEventListener('mouseup',   _onDragEnd);
+    document.addEventListener('touchmove', _onTouchMove, { passive: false });
+    document.addEventListener('touchend',  _onTouchEnd);
+}
+
+function _onTouchStart(e) { _onDragStart(e); }
+function _onTouchMove(e)  { e.preventDefault(); _onDragMove(e); }
+function _onTouchEnd(e)   { _onDragEnd(e); }
+
+function _onDragMove(e) {
+    if (!_dragState) return;
+    const dx = _getSVGX(e, _dragState.svg) - _dragState.startMouseX;
+    _dragState.bar.setAttribute('x', _dragState.origBarX + dx);
+    // Show delta days as tooltip
+    const days = Math.round(dx / _dragState.pxPerDay);
+    _dragState.svg.style.cursor = 'grabbing';
+    _dragState.currentDays = days;
+}
+
+async function _onDragEnd(e) {
+    if (!_dragState) return;
+    document.removeEventListener('mousemove', _onDragMove);
+    document.removeEventListener('mouseup',   _onDragEnd);
+    document.removeEventListener('touchmove', _onTouchMove);
+    document.removeEventListener('touchend',  _onTouchEnd);
+
+    const days = _dragState.currentDays || 0;
+    const taskDbId = _dragState.taskDbId;
+    const origStart = _dragState.origStart;
+    const containerId = _dragState.containerId;
+    _dragState.svg.style.cursor = 'grab';
+    _dragState = null;
+
+    if (days === 0) return;
+    if (!supabaseClient || !activeProjectId) return;
+
+    // Use same cascade logic as saveDatePanel
+    pendingDateChange = {
+        taskDbId,
+        originalStart: origStart,
+        newStart: addDays(origStart, days)
+    };
+    await saveDatePanel(containerId);
+
+    // Re-render to show updated chart
+    renderGanttChart(containerId);
+    _dragModeActive[containerId] = false;
+    toggleDragMode(containerId); // re-enable drag on fresh chart
 }
 
 function toggleDatePanel(containerId) {
