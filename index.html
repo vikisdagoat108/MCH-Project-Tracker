@@ -1537,13 +1537,13 @@ function renderGanttChart(containerId) {
         bars += `<text x="${x1 - 3}" y="${barMidY}" font-size="10" fill="#2B6CB0" text-anchor="end" font-weight="700">${startLbl}</text>`;
         bars += `<text x="${x2 + 3}" y="${barMidY}" font-size="10" fill="#276749" text-anchor="start" font-weight="700">${endLbl}</text>`;
 
-        labels += `<text x="${labelWidth-6}" y="${y+rowH/2}" font-size="11" fill="#1B365D" text-anchor="end" font-weight="600"><title>${ea(lbl)}</title>${ea(lbl.length>22?lbl.slice(0,21)+'…':lbl)}</text>`;
+        labels += `<text x="8" y="${y+rowH/2}" font-size="11" fill="#1B365D" text-anchor="start" font-weight="600"><title>${ea(lbl)}</title>${ea(lbl.length>22?lbl.slice(0,21)+'…':lbl)}</text>`;
 
         // Resource name and phone below task label
         const resInfo = taskResourceMap[task.dbId];
         if (resInfo && (resInfo.name || resInfo.phone)) {
             const resLine = [resInfo.name, resInfo.phone].filter(Boolean).join(' · ');
-            labels += `<text x="${labelWidth-6}" y="${y+rowH/2+13}" font-size="9" fill="#718096" text-anchor="end">${ea(resLine.length>28?resLine.slice(0,27)+'…':resLine)}</text>`;
+            labels += `<text x="8" y="${y+rowH/2+13}" font-size="9" fill="#718096" text-anchor="start">${ea(resLine.length>28?resLine.slice(0,27)+'…':resLine)}</text>`;
         }
         // Assigned to label — shown inside or below the bar
         if (task.assigned_to && task.assigned_to.trim()) {
