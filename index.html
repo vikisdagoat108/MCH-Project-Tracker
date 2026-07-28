@@ -1562,16 +1562,19 @@ function renderGanttChart(containerId) {
                    <polygon points="${x2},${y2} ${x2-6},${y2-4} ${x2-6},${y2+4}" fill="#718096"/>`;
     });
 
+    // In mobile view, don't show labels (no room)
+    const mobLabelWidth = isMobileView ? 0 : labelWidth;
+
     container.innerHTML = `<div style="display:flex;align-items:flex-start;gap:0;">
         <div style="overflow-x:auto;flex:1;">
             <svg width="${chartW}" height="${chartH}" style="font-family:'Segoe UI',sans-serif;display:block;">
                 ${header}
-                <line x1="${labelWidth}" y1="0" x2="${labelWidth}" y2="${chartH}" stroke="#CBD5E0" stroke-width="1.5"/>
-                ${bars}${labels}${arrows}
+                ${mobLabelWidth > 0 ? `<line x1="${labelWidth}" y1="0" x2="${labelWidth}" y2="${chartH}" stroke="#CBD5E0" stroke-width="1.5"/>` : ''}
+                ${bars}${mobLabelWidth > 0 ? labels : ''}${arrows}
             </svg>
         </div>
-        ${(currentRole === 'admin' || currentRole === 'supervisor') ? `
-        <div style="flex-shrink:0;border-left:2px solid var(--border);background:#F7FAFC;min-width:280px;display:flex;flex-direction:column;">
+        ${(currentRole === 'admin' || currentRole === 'supervisor') && !isMobileView ? `
+        <div id="datePanelDiv_${containerId}" style="flex-shrink:0;border-left:2px solid var(--border);background:#F7FAFC;min-width:280px;display:none;flex-direction:column;">
             <div style="height:${headerH}px;background:var(--primary);display:flex;align-items:center;padding:0 10px;gap:8px;">
                 <span style="color:white;font-size:11px;font-weight:700;width:120px;">Start Date</span>
                 <span style="color:white;font-size:11px;font-weight:700;width:120px;">End Date</span>
@@ -1597,9 +1600,9 @@ function renderGanttChart(containerId) {
 
     if (missingEl) missingEl.innerHTML = '';
 
-    // Show the panel toggle button now that the chart is rendered
+    // Show the panel toggle button — default is HIDDEN so button says "Show"
     const toggleBtn = document.getElementById('togglePanelBtn_' + containerId);
-    if (toggleBtn) toggleBtn.style.display = 'inline-block';
+    if (toggleBtn) { toggleBtn.style.display = 'inline-block'; toggleBtn.innerText = '📅 Show Edit Panel'; }
     const dragBtn = document.getElementById('dragModeBtn_' + containerId);
     if (dragBtn) dragBtn.style.display = 'inline-block';
 
@@ -1734,21 +1737,12 @@ async function _onDragEnd(e) {
 }
 
 function toggleDatePanel(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    // Find the date panel (second child of the flex wrapper)
-    const wrapper = container.querySelector('div[style*="display:flex"]');
-    if (!wrapper) return;
-    const panel = wrapper.children[1];
+    const panel = document.getElementById('datePanelDiv_' + containerId);
+    const btn   = document.getElementById('togglePanelBtn_' + containerId);
     if (!panel) return;
-    const btn = document.getElementById('togglePanelBtn_' + containerId);
-    if (panel.style.display === 'none') {
-        panel.style.display = 'flex';
-        if (btn) btn.innerText = '📅 Hide Edit Panel';
-    } else {
-        panel.style.display = 'none';
-        if (btn) btn.innerText = '📅 Show Edit Panel';
-    }
+    const isHidden = panel.style.display === 'none';
+    panel.style.display = isHidden ? 'flex' : 'none';
+    if (btn) btn.innerText = isHidden ? '📅 Hide Edit Panel' : '📅 Show Edit Panel';
 }
 
 async function saveDatePanel(containerId) {
