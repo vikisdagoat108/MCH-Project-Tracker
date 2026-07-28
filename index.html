@@ -1537,11 +1537,11 @@ function renderGanttChart(containerId) {
         bars += `<text x="${x1 - 3}" y="${barMidY}" font-size="10" fill="#2B6CB0" text-anchor="end" font-weight="700">${startLbl}</text>`;
         bars += `<text x="${x2 + 3}" y="${barMidY}" font-size="10" fill="#276749" text-anchor="start" font-weight="700">${endLbl}</text>`;
 
-        labels += `<text x="8" y="${y+rowH/2}" font-size="11" fill="#1B365D" text-anchor="start" font-weight="600"><title>${ea(lbl)}</title>${ea(lbl.length>22?lbl.slice(0,21)+'…':lbl)}</text>`;
+        labels += `<text x="8" y="${y+rowH/2}" font-size="${isMobileView?9:11}" fill="#1B365D" text-anchor="start" font-weight="600"><title>${ea(lbl)}</title>${ea(lbl.length>mobMaxChars?lbl.slice(0,mobMaxChars-1)+'…':lbl)}</text>`;
 
-        // Resource name and phone below task label
+        // Resource name and phone — only show on desktop
         const resInfo = taskResourceMap[task.dbId];
-        if (resInfo && (resInfo.name || resInfo.phone)) {
+        if (resInfo && (resInfo.name || resInfo.phone) && !isMobileView) {
             const resLine = [resInfo.name, resInfo.phone].filter(Boolean).join(' · ');
             labels += `<text x="8" y="${y+rowH/2+13}" font-size="9" fill="#718096" text-anchor="start">${ea(resLine.length>28?resLine.slice(0,27)+'…':resLine)}</text>`;
         }
@@ -1562,15 +1562,16 @@ function renderGanttChart(containerId) {
                    <polygon points="${x2},${y2} ${x2-6},${y2-4} ${x2-6},${y2+4}" fill="#718096"/>`;
     });
 
-    // In mobile view, don't show labels (no room)
-    const mobLabelWidth = isMobileView ? 0 : labelWidth;
+    // In mobile view, use smaller label width and shorter text
+    const mobLabelWidth = isMobileView ? 120 : labelWidth;
+    const mobMaxChars   = isMobileView ? 12 : 22;
 
     container.innerHTML = `<div style="display:flex;align-items:flex-start;gap:0;">
         <div style="overflow-x:auto;flex:1;">
             <svg width="${chartW}" height="${chartH}" style="font-family:'Segoe UI',sans-serif;display:block;">
                 ${header}
-                ${mobLabelWidth > 0 ? `<line x1="${labelWidth}" y1="0" x2="${labelWidth}" y2="${chartH}" stroke="#CBD5E0" stroke-width="1.5"/>` : ''}
-                ${bars}${mobLabelWidth > 0 ? labels : ''}${arrows}
+                <line x1="${mobLabelWidth}" y1="0" x2="${mobLabelWidth}" y2="${chartH}" stroke="#CBD5E0" stroke-width="1.5"/>
+                ${bars}${labels}${arrows}
             </svg>
         </div>
         ${(currentRole === 'admin' || currentRole === 'supervisor') && !isMobileView ? `
