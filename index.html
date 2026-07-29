@@ -1519,6 +1519,10 @@ async function renderGanttChart(containerId) {
         header += `<text x="${x+3}" y="18" font-size="10" fill="#718096">${lbl}</text>`;
     }
 
+    // In mobile view, use smaller label width and shorter text
+    const mobLabelWidth = isMobileView ? 120 : labelWidth;
+    const mobMaxChars   = isMobileView ? 12 : 22;
+
     let bars = '', labels = '';
     withDates.forEach((task, idx) => {
         const y  = headerH + idx * rowH;
@@ -1567,10 +1571,6 @@ async function renderGanttChart(containerId) {
         arrows += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#718096" stroke-width="1.5" stroke-dasharray="4,3"/>
                    <polygon points="${x2},${y2} ${x2-6},${y2-4} ${x2-6},${y2+4}" fill="#718096"/>`;
     });
-
-    // In mobile view, use smaller label width and shorter text
-    const mobLabelWidth = isMobileView ? 120 : labelWidth;
-    const mobMaxChars   = isMobileView ? 12 : 22;
 
     container.innerHTML = `<div style="display:flex;align-items:flex-start;gap:0;">
         <div style="overflow-x:auto;flex:1;">
