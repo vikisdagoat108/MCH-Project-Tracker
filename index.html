@@ -378,7 +378,7 @@
                 <button class="desktop-nav-btn" onclick="scrollToSection('depGridBody')"><span class="dn-icon">🔗</span>Dependencies</button>
                 <button class="desktop-nav-btn" onclick="scrollToSection('resGridBody')"><span class="dn-icon">👷</span>Resources</button>
                 <button class="desktop-nav-btn" onclick="scrollToSection('assignGridBody')"><span class="dn-icon">📌</span>Assignments</button>
-                <button class="desktop-nav-btn" onclick="scrollToSection('ganttContainer')"><span class="dn-icon">📊</span>Gantt Chart</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('ganttContainer')"><span class="dn-icon">📊</span>Schedule</button>
                 <button class="desktop-nav-btn" onclick="scrollToSection('budgetGridBody')"><span class="dn-icon">💰</span>Budget</button>
             </nav>
 
@@ -552,7 +552,7 @@
             </div>
 
             <div class="card">
-                <h2>Gantt Chart (Admin)</h2>
+                <h2>Schedule (Admin)</h2>
                 <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
                     <button class="btn btn-secondary" onclick="renderGanttChart('ganttContainer')">Generate / Refresh Chart</button>
                     <button class="btn btn-secondary" id="togglePanelBtn_ganttContainer" onclick="toggleDatePanel('ganttContainer')" style="display:none;">📅 Hide Edit Panel</button>
@@ -616,13 +616,13 @@
         <div class="desktop-layout">
             <nav class="desktop-nav">
                 <h3>Navigate</h3>
-                <button class="desktop-nav-btn" onclick="scrollToSection('supGanttPanel')"><span class="dn-icon">📅</span>Schedule</button>
-                <button class="desktop-nav-btn" onclick="scrollToSection('supGanttChart')"><span class="dn-icon">📊</span>Gantt Chart</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('supGanttPanel')"><span class="dn-icon">📅</span>Task Dates</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('supGanttChart')"><span class="dn-icon">📊</span>Schedule</button>
                 <button class="desktop-nav-btn" onclick="scrollToSection('supBudgetGridBody')"><span class="dn-icon">💰</span>Budget</button>
             </nav>
             <div class="desktop-main">
             <div class="card">
-                <h2 style="color:var(--supervisor);">📅 Schedule Editor — Supervisor</h2>
+                <h2 style="color:var(--supervisor);">📅 Task Dates — Supervisor</h2>
                 <p style="color:var(--secondary);font-size:14px;margin-top:-10px;">Edit Start and End dates for any task. Dependent tasks will automatically shift when you save a change.</p>
                 <div id="supGanttPanel" style="overflow-x:auto;"></div>
                 <div class="btn-row" style="margin-top:14px;">
@@ -631,7 +631,7 @@
                 </div>
             </div>
             <div class="card">
-                <h2>Gantt Chart</h2>
+                <h2>Schedule</h2>
                 <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
                     <button class="btn btn-secondary" onclick="renderGanttChart('supGanttChart')">Generate / Refresh Chart</button>
                     <button class="btn btn-secondary" id="togglePanelBtn_supGanttChart" onclick="toggleDatePanel('supGanttChart')" style="display:none;">📅 Hide Edit Panel</button>
@@ -676,11 +676,11 @@
         <div class="desktop-layout">
             <nav class="desktop-nav">
                 <h3>Navigate</h3>
-                <button class="desktop-nav-btn" onclick="scrollToSection('userGanttChart')"><span class="dn-icon">📊</span>Gantt Chart</button>
+                <button class="desktop-nav-btn" onclick="scrollToSection('userGanttChart')"><span class="dn-icon">📊</span>Schedule</button>
             </nav>
             <div class="desktop-main">
             <div class="card">
-                <h2>📊 Gantt Chart</h2>
+                <h2>📊 Schedule</h2>
                 <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
                     <button class="btn btn-secondary" onclick="renderGanttChart('userGanttChart')">Generate / Refresh Chart</button>
                 </div>
@@ -2640,7 +2640,7 @@ function scrollToSection(elementId) {
 
 const MOB_SECTIONS = {
     admin: [
-        { id: 'gantt',       icon: '📊', label: 'Gantt Chart'      },
+        { id: 'gantt',       icon: '📊', label: 'Schedule'         },
         { id: 'taskgrid',    icon: '📋', label: 'Task Grid'         },
         { id: 'import',      icon: '📥', label: 'Import Tasks'      },
         { id: 'deps',        icon: '🔗', label: 'Dependencies'      },
@@ -2651,12 +2651,12 @@ const MOB_SECTIONS = {
         { id: 'newproject',  icon: '➕', label: 'New Project'       },
     ],
     supervisor: [
-        { id: 'gantt',    icon: '📊', label: 'Gantt Chart'      },
-        { id: 'schedule', icon: '📅', label: 'Schedule Editor'  },
+        { id: 'gantt',    icon: '📊', label: 'Schedule'         },
+        { id: 'schedule', icon: '📅', label: 'Task Dates'       },
         { id: 'supbudget',icon: '💰', label: 'Budget'           },
     ],
     user: [
-        { id: 'gantt', icon: '📊', label: 'Gantt Chart' },
+        { id: 'gantt', icon: '📊', label: 'Schedule'    },
     ]
 };
 
