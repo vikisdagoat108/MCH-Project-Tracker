@@ -2739,12 +2739,36 @@ function buildMobNav() {
 function showMobileSection(sectionId) {
     if (!currentRole) return;
     const sec = (MOB_SECTIONS[currentRole]||[]).find(s => s.id === sectionId); if (!sec) return;
+    const content = document.getElementById('mobSectionContent'); if (!content) return;
+
+    // For Gantt sections, render directly into mobile section with a fresh container
+    const isGantt = (sectionId === 'gantt' || sectionId === 'schedule');
+    if (isGantt) {
+        const ganttContId = currentRole === 'admin' ? 'ganttContainer'
+                          : currentRole === 'supervisor' ? 'supGanttChart' : 'userGanttChart';
+        content.innerHTML = `
+            <div class="card">
+                <div class="btn-row" style="margin-bottom:12px;">
+                    <button class="btn btn-secondary" onclick="renderGanttChart('mobGanttContainer')">Generate / Refresh Chart</button>
+                </div>
+                <div class="gantt-wrapper" id="mobGanttContainer" style="overflow-x:auto;">
+                    <p style="color:var(--secondary);padding:20px;text-align:center;">Click Generate to load chart.</p>
+                </div>
+            </div>`;
+        document.getElementById('mobSectionTitle').innerText = sec.label;
+        document.getElementById('mobNavDropdown').value      = '';
+        document.getElementById('mobileHome').style.display    = 'none';
+        document.getElementById('mobileSection').style.display = 'block';
+        return;
+    }
+
     const selector = (MOB_CARD_MAP[currentRole]||{})[sectionId];
     const card = selector ? document.querySelector(selector) : null;
-    const content = document.getElementById('mobSectionContent'); if (!content) return;
     content.innerHTML = '';
     if (card) {
         const clone = card.cloneNode(true);
+        // Remove IDs from clone to avoid conflicts with originals
+        clone.querySelectorAll('[id]').forEach(el => { el.setAttribute('data-orig-id', el.id); el.removeAttribute('id'); });
         content.appendChild(clone);
     } else {
         content.innerHTML = '<p style="color:var(--secondary);padding:20px;">Section not available.</p>';
@@ -2753,17 +2777,12 @@ function showMobileSection(sectionId) {
     document.getElementById('mobNavDropdown').value      = '';
     document.getElementById('mobileHome').style.display    = 'none';
     document.getElementById('mobileSection').style.display = 'block';
-    // Trigger re-renders for dynamic content
     setTimeout(() => {
         if (sectionId === 'taskgrid')    renderGrid();
         if (sectionId === 'deps')        renderDependencyGrid();
         if (sectionId === 'assignments') renderAssignGrid();
         if (sectionId === 'resources')   renderResGrid();
         if (sectionId === 'users')       loadUserManagement();
-        if (sectionId === 'gantt') {
-            const cId = currentRole==='admin'?'ganttContainer':currentRole==='supervisor'?'supGanttChart':'userGanttChart';
-            if (content.querySelector('#'+cId)) renderGanttChart(cId);
-        }
     }, 80);
 }
 
