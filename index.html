@@ -2808,6 +2808,21 @@ function navigateMobileSection(sectionId) { if (sectionId) showMobileSection(sec
     const loginBtn  = document.getElementById('loginMobBtn');
     if (loginBtn) { loginBtn.style.display = 'block'; loginBtn.innerText = isMobileView ? '🖥 Desktop View' : '📱 Mobile View'; }
     if (isMobileView && currentRole) applyMobileView();
-})();</script>
+})();
+
+// Keep switching automatically as the window is resized/rotated, unless the
+// user has explicitly forced a view with the Mobile/Desktop toggle button.
+let _resizeDebounce = null;
+window.addEventListener('resize', () => {
+    clearTimeout(_resizeDebounce);
+    _resizeDebounce = setTimeout(() => {
+        if (localStorage.getItem('mchMobile') !== null) return; // manual override in place
+        const shouldBeMobile = window.innerWidth < 768;
+        if (shouldBeMobile !== isMobileView) {
+            isMobileView = shouldBeMobile;
+            applyMobileView();
+        }
+    }, 150);
+});</script>
 </body>
 </html>
