@@ -1403,8 +1403,8 @@ async function loadSupervisorView() {
 
     tasksWithDates.forEach(row => {
         html += `<div class="sup-gantt-row">
-            <div class="sup-gantt-label" title="${ea(row.task_label ? row.task_label+' — '+row.title : row.title)}">
-                ${ea(row.task_label ? row.task_label+' — '+row.title : row.title)}
+            <div class="sup-gantt-label" title="${ea(row.title)}">
+                ${ea(row.title)}
             </div>
             <div class="sup-gantt-bar-wrap">
                 <div style="height:20px;background:${row.type==='Milestone'?'#805AD5':row.type==='Inspection'?'#DD6B20':'#3182CE'};border-radius:3px;opacity:0.7;min-width:4px;"></div>
@@ -1532,7 +1532,7 @@ async function renderGanttChart(containerId) {
         const pct = (task.progress !== '' && task.progress !== null) ? Math.min(100, Number(task.progress)) : 0;
         const fillW = Math.round(w * pct / 100);
         const color = pct >= 100 ? '#38A169' : (task.type === 'Milestone' ? '#805AD5' : task.type === 'Inspection' ? '#DD6B20' : '#3182CE');
-        const lbl = (task.task_label ? task.task_label + ' — ' : '') + task.title;
+        const lbl = task.title;
 
         if (idx % 2 === 0) bars += `<rect x="0" y="${y}" width="${chartW}" height="${rowH}" fill="#F7FAFC" opacity="0.5"/>`;
         bars += `<rect x="${x1}" y="${y+8}" width="${w}" height="${rowH-30}" rx="3" fill="${color}" opacity="0.85"
