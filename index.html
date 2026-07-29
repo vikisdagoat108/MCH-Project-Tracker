@@ -1469,10 +1469,16 @@ async function cascadeShift(sourceDbId, deltaDays, visited) {
 
 // ── GANTT CHART ──────────────────────────────────────────────────
 
-function renderGanttChart(containerId) {
-    const missingMap = { ganttContainer: 'ganttMissingDates', supGanttChart: 'supGanttMissing', userGanttChart: 'userGanttMissing' };
+async function renderGanttChart(containerId) {
+    const missingMap = { ganttContainer: 'ganttMissingDates', supGanttChart: 'supGanttMissing', userGanttChart: 'userGanttMissing', mobGanttContainer: null };
     const container = document.getElementById(containerId);
+    if (!container) return;
     const missingEl = document.getElementById(missingMap[containerId]);
+
+    // If gridRows is empty, fetch from DB first
+    if (gridRows.length === 0 && supabaseClient && activeProjectId) {
+        await refreshDataContainers();
+    }
 
     const withDates    = gridRows
         .filter(r => r.dbId && r.start_date && r.end_date && r.title)
